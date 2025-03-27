@@ -1,15 +1,16 @@
-version: '3.7'
 services:
   # Base de datos (PostgreSQL)
   db:
-    image: postgres:lastest
-    container_name: WEB-TFG
+    image: postgres:latest
+    container_name: WEB-TFG-db
     environment:
-      - POSTGRES_USER= user
-      - POSTGRES_PASSWORD= password
-      - POSTGRES_DB= WEB-TFG-db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=WEB-TFG-db
     volumes:
-      - ./database/data:/var/lib/postgresql/data   # Volumen persistente para la base de datos
+      - ./postgres-data:/var/lib/postgresql/data   # Volumen persistente para la base de datos
+    ports:
+      - "5432:5432" 
     #networks:
       #- bar_network
 
