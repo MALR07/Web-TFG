@@ -9,11 +9,12 @@ const Plato = sequelize.define('Plato', {
     autoIncrement: true,
   },
   nombre: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(255),
     allowNull: false,
   },
   descripcion: {
     type: DataTypes.TEXT,
+    allowNull: true, // Permitimos que sea opcional
   },
   cantidad_disponible: {
     type: DataTypes.INTEGER,
@@ -25,6 +26,7 @@ const Plato = sequelize.define('Plato', {
 }, {
   tableName: 'platos',
   timestamps: false,
+ // schema: 'logica',     // Especifica el esquema en el que se debe guardar la tabla
 });
 
 module.exports = Plato;

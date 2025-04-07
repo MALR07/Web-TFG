@@ -13,10 +13,18 @@ const Reserva = sequelize.define('Reserva', {
   id_usuario: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: Usuario,
+      key: 'id_user',
+    },
   },
   id_plato: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: Plato,
+      key: 'id_plato',
+    },
   },
   fecha_reserva: {
     type: DataTypes.DATE,
@@ -32,6 +40,7 @@ const Reserva = sequelize.define('Reserva', {
 }, {
   tableName: 'reservas',
   timestamps: false,
+ // schema: 'logica',     // Especifica el esquema en el que se debe guardar la tabla
 });
 
 // Definir relaciones (relación entre reservas, usuarios y platos)

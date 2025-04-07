@@ -1,6 +1,7 @@
 // Importamos los módulos necesarios
 const express = require('express');
 const session = require('express-session');
+const flash = require('express-flash'); // Para mostrar mensajes flash
 const passport = require('./config/passport');  
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -27,6 +28,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());  // Habilitar CORS
 app.use(express.json()); // Este middleware permite que el servidor entienda y procese datos en formato JSON
 app.use(express.urlencoded({ extended: true }));  // Analizar cuerpos de solicitudes URL-encoded
+
+// Middleware para gestionar los mensajes flash
+app.use(flash());  // Añadir este middleware para que los mensajes flash funcionen correctamente
 
 // Middleware para verificar el rol
 const checkRole = (role) => {
@@ -102,7 +106,7 @@ app.post('/register', async (req, res) => {
 // Ruta de dashboard (sólo accesible después de login exitoso)
 app.get('/dashboard', (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.redirect('/login');
+    return res.redirect('/login'); // Redirigir a la página de login si no está autenticado
   }
   res.send('Bienvenido al dashboard');
 });
