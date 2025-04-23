@@ -1,0 +1,5 @@
+# Ignorar la carpeta de dependencias locales
+node_modules/
+
+# Ignorar el archivo de log de npm (se genera cuando hay errores de instalación)
+npm-debug.log

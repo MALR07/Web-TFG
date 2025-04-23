@@ -1,0 +1,42 @@
+services:
+  # Frontend (React)
+  #frontend:
+    #build: ./frontend
+    #ports:
+     # - "3000:3000"  # Mapea el puerto 3000 del contenedor al puerto 3000 de tu máquina local
+    #depends_on:
+     # - backend      # Depende del backend para que se inicie después
+
+  # Backend (Node.js + Express)
+  backend:
+    build: ./backend
+    container_name: WEB_BAR_TFG_backend # Nombre del contenedor del backend
+    ports:
+      - "3001:3001"  # Mapea el puerto 3001 del contenedor al puerto 3001 de tu máquina local
+    volumes:
+      - ./backend:/usr/src/app  # Monta el directorio ./backend local dentro del contenedor en /usr/src/app 
+    environment:
+      - NODE_ENV=development # Establece el entorno como desarrollo (útil para nodemon) 
+    depends_on:
+      - db           # Depende de la base de datos para asegurarse que se inicie después
+    networks:
+      - bar_network            # Usar la red personalizada para la comunicación entre servicios
+
+  # Base de datos (PostgreSQL)
+  db:
+    image: postgres:latest # Usa la última versión de la imagen oficial de PostgreSQL
+    container_name: WEB_BAR_TFG_db # Nombre del contenedor de la base de datos
+    environment:
+      - POSTGRES_USER=user1 # Nombre de usuario para la base de datos
+      - POSTGRES_PASSWORD=malr07@ # Contraseña para la base de datos
+      - POSTGRES_DB=WEB_BAR_TFG_db # Nombre de la base de datos a crear
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data   # Volumen persistente para la base de datos
+    ports:
+      - "5432:5432" # Mapea el puerto 5432 del contenedor al puerto 5432 de tu máquina local
+    networks:
+      - bar_network # Define una red personalizada para la comunicación entre los servicios
+ # Redes
+networks:
+  bar_network:
+    driver: bridge # Define una red personalizada llamada bar_network utilizando el driver de red 'bridge' (predeterminado)
