@@ -32,14 +32,21 @@ module.exports = (sequelize, DataTypes) => {
         min: 1,
       },
     },
+    estado: {
+      type: DataTypes.ENUM('confirmada', 'cancelada', 'no_presentado'),
+      defaultValue: 'confirmada', // Estado inicial por defecto
+    },
   }, {
     tableName: 'reservas',
     timestamps: false,
   });
 
   Reserva.associate = (models) => {
+    // Relación con el modelo 'User' (clientes que hacen las reservas)
     Reserva.belongsTo(models.User, { foreignKey: 'id_usuario', targetKey: 'id_user' });
-    Reserva.belongsTo(models.Plato, { foreignKey: 'id_plato', targetKey: 'id_plato' });
+
+    // Relación con el modelo 'Plato' (el plato reservado)
+    Reserva.belongsTo(models.Platos, { foreignKey: 'id_plato', targetKey: 'id_plato' });
   };
 
   return Reserva;

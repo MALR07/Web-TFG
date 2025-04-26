@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Plato = sequelize.define('Plato', {
+  const Plato = sequelize.define('Platos', {
     id_plato: {
       type: DataTypes.INTEGER,
       primaryKey: true,

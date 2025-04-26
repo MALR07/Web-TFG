@@ -5,18 +5,17 @@ const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local'); 
 
 // Importar bcrypt para la comparación de contraseñas
+const bcrypt = require('bcrypt'); 
 
-const bcrypt = require('bcryptjs'); 
-
-// Importar el modelo de usuario
-const User = require('../models/users');
+// Importar el modelo desde el archivo index.js de models
+const { User } = require('../models');
 
 // Configurar la estrategia local de Passport.js
 passport.use(new LocalStrategy(
-  { 
+  {
     usernameField: 'email', // Usamos el email como el campo de login
     passwordField: 'contrasena' // El campo de contraseña será 'contrasena'
-},
+  },
   async (email, contrasena, done) => {
     try {
       // Buscar el usuario en la base de datos por su email
@@ -26,10 +25,15 @@ passport.use(new LocalStrategy(
       if (!user) {
         return done(null, false, { message: 'Correo electrónico no encontrado.' });
       }
-      
+
+      // Validar que la contraseña del usuario esté definida
+      if (!user.contrasena) {
+        return done(null, false, { message: 'Contraseña no definida para este usuario.' });
+      }
+
       // Comparar la contraseña proporcionada con la almacenada en la base de datos
       const isMatch = await bcrypt.compare(contrasena, user.contrasena);
-       
+
       // Si las contraseñas no coinciden, devolver un error
       if (!isMatch) {
         return done(null, false, { message: 'Contraseña incorrecta.' });
@@ -38,6 +42,7 @@ passport.use(new LocalStrategy(
       // Si todo es correcto, devolver el usuario
       return done(null, user);
     } catch (error) {
+      console.error('Error en la estrategia de Passport:', error);
       return done(error);
     }
   }

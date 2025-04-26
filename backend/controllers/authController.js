@@ -1,26 +1,64 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt'); // Reemplazar bcryptjs por bcrypt
 const jwt = require('jsonwebtoken');
-const User = require('../models/users');
+const { User } = require('../models');
 const sendPasswordRecoveryEmail = require('../config/mailer');
 
 module.exports = {
-  login: (req, res) => {
-    // Lógica de autenticación con Passport.js
-    res.send('Login exitoso');
+  login: async (req, res) => {
+    const { email, password, contrasena } = req.body;
+    const userPassword = password || contrasena;
+  
+    try {
+      if (!email || !userPassword) {
+        return res.status(400).json({ message: 'Email y contraseña son requeridos' });
+      }
+  
+      const user = await User.findOne({ where: { email } });
+      if (!user) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
+  
+      if (!user.contrasena) {
+        return res.status(500).json({ message: 'Error interno: contraseña no definida para el usuario' });
+      }
+  
+      const hashAlmacenado = typeof user.contrasena === 'string'
+        ? user.contrasena
+        : user.contrasena.toString();
+  
+      const isMatch = await bcrypt.compare(userPassword, hashAlmacenado);
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Contraseña incorrecta' });
+      }
+  
+      const token = jwt.sign(
+        { id_user: user.id_user, email: user.email, rol: user.rol },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+  
+      res.status(200).json({ message: 'Login exitoso', token });
+    } catch (error) {
+      console.error('Error en el login:', error);
+      res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    }
   },
-
+  
   register: async (req, res) => {
     const { nombre, email, contrasena, rol } = req.body;
+  
+    if (!contrasena || typeof contrasena !== 'string') {
+      return res.status(400).json({ message: 'La contraseña es requerida y debe ser un string' });
+    }
+  
     try {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(contrasena, salt);
-      const user = await User.create({ nombre, email, contrasena: hashedPassword, rol });
+      const user = await User.create({ nombre, email, contrasena, rol });
       res.status(201).json({ message: 'Usuario registrado exitosamente', user });
     } catch (error) {
       console.error('Error al registrar el usuario:', error);
       res.status(500).json({ message: 'Error al registrar el usuario' });
     }
-  },
+  }, 
 
   forgotPassword: async (req, res) => {
     const { email } = req.body;

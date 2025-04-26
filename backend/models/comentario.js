@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
 
   Comentario.associate = (models) => {
     Comentario.belongsTo(models.User, { foreignKey: 'id_user', targetKey: 'id_user' });
-    Comentario.belongsTo(models.Plato, { foreignKey: 'id_plato', targetKey: 'id_plato' });
+    Comentario.belongsTo(models.Platos, { foreignKey: 'id_plato', targetKey: 'id_plato' });
   };
 
   return Comentario;

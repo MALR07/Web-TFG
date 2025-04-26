@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const reservasController = require('../controllers/reservasController');
-const checkRole = require('../middleware/checkRole');
-const { Reserva } = require('../models');
+const verifyToken = require('../middleware/verifyToken'); // Middleware para verificar el token JWT
+const checkRole = require('../middleware/checkRole'); // Middleware para verificar el rol de usuario
 
-// Ruta para que un cliente cree una reserva
-router.post('/crear', reservasController.createReserva);
+// Ruta para que un cliente cree una reserva (solo clientes pueden crear reservas)
+router.post('/crear', verifyToken, checkRole('cliente'), reservasController.createReserva);
 
-// Ruta para que un camarero gestione una reserva
-router.put('/gestionar', checkRole('camarero'), reservasController.manageReserva);
+// Ruta para que un camarero gestione una reserva (solo camareros pueden gestionar las reservas)
+router.put('/gestionar', verifyToken, checkRole('camarero'), reservasController.manageReserva);
+
+// Ruta para que un camarero cancele una reserva (solo camareros pueden cancelar reservas)
+router.delete('/cancelar', verifyToken, checkRole('camarero'), reservasController.cancelReserva);
 
 module.exports = router;

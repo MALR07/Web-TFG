@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
@@ -37,6 +37,13 @@ module.exports = (sequelize, DataTypes) => {
     const salt = await bcrypt.genSalt(10);
     user.contrasena = await bcrypt.hash(user.contrasena, salt);
   });
+
+  User.beforeUpdate(async (user) => {
+  if (user.changed('contrasena')) {
+    const salt = await bcrypt.genSalt(10);
+    user.contrasena = await bcrypt.hash(user.contrasena, salt);
+  }
+});
 
   User.prototype.comparePassword = function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.contrasena);
