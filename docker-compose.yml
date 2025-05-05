@@ -1,42 +1,54 @@
+version: "3.9"
+
 services:
-  # Frontend (React)
-  #frontend:
-    #build: ./frontend
-    #ports:
-     # - "3000:3000"  # Mapea el puerto 3000 del contenedor al puerto 3000 de tu máquina local
-    #depends_on:
-     # - backend      # Depende del backend para que se inicie después
+  # Frontend (Vite + React)
+  frontend:
+    build: ./frontend  # Construye la imagen usando el Dockerfile dentro de ./frontend
+    container_name: WEB_BAR_TFG_frontend  # Nombre del contenedor para identificarlo fácilmente
+    ports:
+      - "3000:3000"  # Mapea el puerto local 3000 con el puerto 3000 del contenedor (donde Vite se ejecuta)
+    volumes:
+      - ./frontend:/app  # Sincroniza el código local con el contenedor para desarrollo en vivo
+      - /app/node_modules  # Evita sobrescribir node_modules al sincronizar la carpeta
+    command: npm run dev  # Comando que lanza el servidor de desarrollo de Vite
+    environment:
+      - NODE_ENV=development  # Define el entorno como desarrollo
+    depends_on:
+      - backend  # Se asegura de que el backend esté disponible antes de iniciar
+    networks:
+      - bar_network  # Red para que los servicios puedan comunicarse entre sí
 
   # Backend (Node.js + Express)
   backend:
     build: ./backend
-    container_name: WEB_BAR_TFG_backend # Nombre del contenedor del backend
+    container_name: WEB_BAR_TFG_backend
     ports:
-      - "3001:3001"  # Mapea el puerto 3001 del contenedor al puerto 3001 de tu máquina local
+      - "3001:3001"
     volumes:
-      - ./backend:/usr/src/app  # Monta el directorio ./backend local dentro del contenedor en /usr/src/app 
+      - ./backend:/usr/src/app
     environment:
-      - NODE_ENV=development # Establece el entorno como desarrollo (útil para nodemon) 
+      - NODE_ENV=development
     depends_on:
-      - db           # Depende de la base de datos para asegurarse que se inicie después
+      - db
     networks:
-      - bar_network            # Usar la red personalizada para la comunicación entre servicios
+      - bar_network
 
   # Base de datos (PostgreSQL)
   db:
-    image: postgres:latest # Usa la última versión de la imagen oficial de PostgreSQL
-    container_name: WEB_BAR_TFG_db # Nombre del contenedor de la base de datos
+    image: postgres:latest
+    container_name: WEB_BAR_TFG_db
     environment:
-      - POSTGRES_USER=user1 # Nombre de usuario para la base de datos
-      - POSTGRES_PASSWORD=malr07@ # Contraseña para la base de datos
-      - POSTGRES_DB=WEB_BAR_TFG_db # Nombre de la base de datos a crear
+      - POSTGRES_USER=user1
+      - POSTGRES_PASSWORD=malr07@
+      - POSTGRES_DB=WEB_BAR_TFG_db
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data   # Volumen persistente para la base de datos
+      - ./postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432" # Mapea el puerto 5432 del contenedor al puerto 5432 de tu máquina local
+      - "5432:5432"
     networks:
-      - bar_network # Define una red personalizada para la comunicación entre los servicios
- # Redes
+      - bar_network
+
+# Redes
 networks:
   bar_network:
-    driver: bridge # Define una red personalizada llamada bar_network utilizando el driver de red 'bridge' (predeterminado)
+    driver: bridge
