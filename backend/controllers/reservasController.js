@@ -93,13 +93,63 @@ module.exports = {
     }
   }],
 
+// Función para obtener las reservas de un cliente o camarero
+getReservas: [verifyToken, checkRole('cliente', 'camarero'), async (req, res) => {
+  const id_usuario = req.user.id_user; // Obtener ID de usuario desde el token JWT
+  const rol = req.user.rol;  // Obtener el rol del usuario (cliente o camarero)
+
+  try {
+    // Si el rol es cliente, obtenemos solo sus propias reservas, si es camarero, todas las reservas
+    const whereCondition = rol === 'cliente' ? { id_usuario } : {};  // Si es cliente, solo las reservas suyas
+
+    // Buscar todas las reservas (si es cliente, solo las de ese cliente, si es camarero, todas las reservas)
+    const reservas = await Reservas.findAll({
+      where: whereCondition,  // Condición de búsqueda: por id_usuario si es cliente
+      include: [
+        {
+          model: Platos,  // Incluir el modelo 'Platos'
+          as: 'Plato',   // El alias por defecto es 'Platos' (sin modificarlo)
+          attributes: ['id_plato', 'nombre', 'descripcion', 'cantidad_disponible'],  // Aseguramos que los atributos de Platos se incluyan
+        },
+        {
+          model: User,     // Incluir el modelo 'User'
+          as: 'User',      // El alias por defecto es 'User' (sin modificarlo)
+          attributes: ['id_user', 'nombre', 'email'],  // Incluir el id, nombre y email del usuario
+        }
+      ],
+    });
+
+    // Si no se encuentran reservas, devolver un mensaje adecuado
+    if (reservas.length === 0) {
+      return res.status(404).json({
+        message: rol === 'cliente' ? 'No tienes reservas pendientes' : 'No hay reservas registradas'
+      });
+    }
+
+    // Devolver las reservas encontradas
+    res.status(200).json({ reservas });
+  } catch (error) {
+    console.error('Error al obtener las reservas:', error);
+    res.status(500).json({ message: 'Error al obtener las reservas', error: error.message });
+  }
+}],
+
+
   // Función para gestionar las reservas (solo camareros pueden gestionarlas)
   manageReserva: [verifyToken, checkRole('camarero'), async (req, res) => {
     try {
       const { reservaId } = req.body;
 
       // Buscar la reserva
-      const reserva = await Reservas.findByPk(reservaId);
+      const reserva = await Reservas.findByPk(reservaId, {
+        include: [
+          {
+            model: Platos,
+            as: 'Plato', // Obtener los platos relacionados con la reserva
+          },
+        ],
+      });
+
       if (!reserva) {
         return res.status(404).json({ message: 'Reserva no encontrada' });
       }
@@ -111,39 +161,62 @@ module.exports = {
     }
   }],
 
-  // Función para cancelar una reserva si el cliente no se presenta
-  cancelReserva: [verifyToken, checkRole('camarero'), async (req, res) => {
+  // Función para cancelar una reserva
+  cancelReserva: [verifyToken, async (req, res) => {
     try {
       const { reservaId } = req.body;
+      const id_usuario = req.user.id_user;
+      const rol = req.user.rol;
 
-      // Buscar la reserva
-      const reserva = await Reservas.findByPk(reservaId);
+      const reserva = await Reservas.findByPk(reservaId, {
+        include: [
+          {
+            model: Platos, // Incluir los platos relacionados con la reserva
+            as: 'Plato',
+          },
+        ],
+      });
+
       if (!reserva) {
         return res.status(404).json({ message: 'Reserva no encontrada' });
       }
 
-      // Cancelar la reserva
+      // Verificamos que el cliente solo pueda cancelar su propia reserva
+      if (rol === 'cliente' && reserva.id_usuario !== id_usuario) {
+        return res.status(403).json({ message: 'No tenés permiso para cancelar esta reserva' });
+      }
+
+      // Si el camarero está cancelando, no hay restricción de quien hizo la reserva
+      if (rol === 'camarero') {
+        // El camarero puede cancelar cualquier reserva
+      }
+
+      // Si la reserva es cancelada por un cliente o camarero, actualizar la cantidad del plato
+      const plato = reserva.Plato;
+      plato.cantidad_disponible += reserva.cantidad;
+      await plato.save();
+
+      // Eliminar la reserva de la base de datos
       await reserva.destroy();
 
-      // Obtener el usuario asociado a la reserva
+      // Enviar correo al usuario notificando la cancelación de la reserva
       const usuario = await User.findByPk(reserva.id_usuario);
       if (usuario) {
-        // Enviar un correo al usuario notificando la cancelación
         await sendEmail(
           usuario.email,
           'Reserva Cancelada',
-          `Lamentablemente, tu reserva para el plato ${reserva.Plato.nombre} ha sido cancelada debido a que no te presentaste en la hora de la reserva.`
+          `Lamentablemente, tu reserva para el plato ${plato.nombre} ha sido cancelada.`
         );
       }
 
-      res.status(200).json({ message: 'Reserva cancelada exitosamente' });
+      res.status(200).json({ message: 'Reserva cancelada exitosamente y cantidad de plato actualizada' });
     } catch (error) {
       console.error('Error al cancelar la reserva:', error);
       res.status(500).json({ message: 'Error al cancelar la reserva', error: error.message });
     }
   }],
 
-  // Función para verificar el token (JWT) si se requiere
+  // Función para verificar el token (JWT)
   verifyJwtToken: [verifyToken, async (req, res) => {
     try {
       const token = req.headers['authorization']?.split(' ')[1]; // 'Bearer <token>'

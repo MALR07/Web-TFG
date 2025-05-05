@@ -10,7 +10,10 @@ router.post('/crear', verifyToken, checkRole('cliente'), reservasController.crea
 // Ruta para que un camarero gestione una reserva (solo camareros pueden gestionar las reservas)
 router.put('/gestionar', verifyToken, checkRole('camarero'), reservasController.manageReserva);
 
-// Ruta para que un camarero cancele una reserva (solo camareros pueden cancelar reservas)
-router.delete('/cancelar', verifyToken, checkRole('camarero'), reservasController.cancelReserva);
+// Ruta para que un cliente vea sus propias reservas
+router.get('/reservas', verifyToken, checkRole('cliente','camarero'), reservasController.getReservas);
+
+// Ruta para que un camarero cancele una reserva
+router.delete('/cancelar', verifyToken, checkRole('camarero','cliente'), reservasController.cancelReserva);
 
 module.exports = router;
