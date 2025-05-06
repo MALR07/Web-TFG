@@ -13,6 +13,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+
+    imagen: {
+      type: DataTypes.STRING, // guarda solo el nombre del archivo
+      allowNull: true
+    },
+    
     cantidad_disponible: {
       type: DataTypes.INTEGER,
       allowNull: false,

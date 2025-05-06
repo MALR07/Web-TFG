@@ -1,7 +1,9 @@
+const path = require('path');
+const fs = require('fs');
 const { Platos } = require('../models');
 const verifyToken = require('../middleware/verifyToken'); // Middleware para verificar el JWT
-const checkRole = require('../middleware/checkRole'); // Middleware para verificar el rol
-const { Op } = require('sequelize'); // Asegúrate de importar Op
+const checkRole = require('../middleware/checkRole');     // Middleware para verificar el rol
+const { Op } = require('sequelize');                      // Operadores de Sequelize
 
 module.exports = {
   // Función para que los clientes vean los platos disponibles
@@ -9,9 +11,9 @@ module.exports = {
     try {
       // Obtenemos los platos con cantidad disponible mayor a 0
       const platosDisponibles = await Platos.findAll({
-        where: { cantidad_disponible: { [Op.gt]: 0 } }, // Usamos Op.gt para mayor que 0
+        where: { cantidad_disponible: { [Op.gt]: 0 } },
       });
-      
+
       // Retornamos los platos disponibles
       res.status(200).json(platosDisponibles);
     } catch (error) {
@@ -24,14 +26,27 @@ module.exports = {
   addPlato: [verifyToken, checkRole('camarero'), async (req, res) => {
     try {
       const { nombre, descripcion, cantidad_disponible } = req.body;
-      
-      // Creamos el nuevo plato
+
+      // Si se sube una imagen, la procesamos
+      let imagen = null;
+      if (req.file) {
+        // Usamos path para asegurarnos de que la ruta es correcta
+        const filePath = path.join(__dirname, '..', 'uploads', req.file.filename); // Ejemplo de ruta donde almacenar la imagen
+
+        // Movemos el archivo subido al directorio 'uploads'
+        fs.renameSync(req.file.path, filePath); // Cambia el archivo de ubicación
+
+        imagen = req.file.filename; // Guardamos el nombre del archivo en la base de datos
+      }
+
+      // Creamos el nuevo plato con o sin imagen
       const nuevoPlato = await Platos.create({
         nombre,
         descripcion,
         cantidad_disponible,
+        imagen,
       });
-      
+
       // Respuesta exitosa
       res.status(201).json({ message: 'Plato añadido exitosamente', plato: nuevoPlato });
     } catch (error) {
@@ -44,16 +59,24 @@ module.exports = {
   deletePlato: [verifyToken, checkRole('camarero'), async (req, res) => {
     try {
       const { platoId } = req.params;
-      
+
       // Buscamos el plato por su ID
       const plato = await Platos.findByPk(platoId);
       if (!plato) {
         return res.status(404).json({ message: 'Plato no encontrado' });
       }
 
+      // Si el plato tiene imagen, la eliminamos del sistema de archivos
+      if (plato.imagen) {
+        const imagenPath = path.join(__dirname, '..', 'uploads', plato.imagen);
+        if (fs.existsSync(imagenPath)) {
+          fs.unlinkSync(imagenPath); // Eliminar el archivo de la imagen
+        }
+      }
+
       // Eliminamos el plato
       await plato.destroy();
-      
+
       // Respuesta exitosa
       res.status(200).json({ message: 'Plato eliminado exitosamente' });
     } catch (error) {
@@ -74,10 +97,27 @@ module.exports = {
         return res.status(404).json({ message: 'Plato no encontrado' });
       }
 
-      // Actualizamos los campos del plato
-      plato.nombre = nombre || plato.nombre;  // Si no se envía un nuevo nombre, mantenemos el actual
-      plato.descripcion = descripcion || plato.descripcion;  // Lo mismo para la descripción
-      plato.cantidad_disponible = cantidad_disponible || plato.cantidad_disponible;  // Y la cantidad disponible
+      // Si hay una nueva imagen, la procesamos
+      if (req.file) {
+        // Eliminar la imagen antigua si existe
+        if (plato.imagen) {
+          const imagenPath = path.join(__dirname, '..', 'uploads', plato.imagen);
+          if (fs.existsSync(imagenPath)) {
+            fs.unlinkSync(imagenPath); // Eliminar la imagen antigua
+          }
+        }
+
+        // Usamos path para asegurarnos de que la ruta es correcta
+        const filePath = path.join(__dirname, '..', 'uploads', req.file.filename);
+        fs.renameSync(req.file.path, filePath); // Movemos el archivo al directorio 'uploads'
+
+        plato.imagen = req.file.filename; // Actualizamos el nombre de la imagen en la base de datos
+      }
+
+      // Actualizamos los campos del plato si fueron enviados
+      plato.nombre = nombre || plato.nombre;
+      plato.descripcion = descripcion || plato.descripcion;
+      plato.cantidad_disponible = cantidad_disponible || plato.cantidad_disponible;
 
       // Guardamos los cambios en la base de datos
       await plato.save();

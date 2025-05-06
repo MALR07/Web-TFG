@@ -1,14 +1,20 @@
-# Etapa de build
-FROM node:20 AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+# Dockerfile para Desarrollo (con Vite y Node.js)
+FROM node:18-alpine
 
-# Etapa de producción con Nginx
-FROM nginx:stable-alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Directorio de trabajo dentro del contenedor
+WORKDIR /usr/src/app
+
+# Copia solo los archivos de dependencias para instalar primero
+COPY package*.json ./
+
+# Instala las dependencias
+RUN npm install
+
+# Copia el resto del código fuente del frontend
+COPY . .
+
+# Expone el puerto que Vite utiliza (3000 por defecto)
+EXPOSE 3000
+
+# Comando que arranca el servidor de desarrollo de Vite
+CMD ["npm", "run", "dev"]
