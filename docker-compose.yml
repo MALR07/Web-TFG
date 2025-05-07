@@ -1,21 +1,22 @@
 
 services:
-  # Frontend (Vite + React)
-#  frontend:
- #   build: ./frontend  # Construye la imagen usando el Dockerfile dentro de ./frontend
-  #  container_name: WEB_BAR_TFG_frontend  # Nombre del contenedor para identificarlo fácilmente
-   # ports:
-     # - "3000:3000"  # Mapea el puerto local 3000 con el puerto 3000 del contenedor (donde Vite se ejecuta)
-   # volumes:
-     # - ./frontend:/usr/src/app # Sincroniza el código local con el contenedor para desarrollo en vivo
-    #  -  /usr/src/app/node_modules  # Evita sobrescribir node_modules al sincronizar la carpeta
-   # command: npm run dev  # Comando que lanza el servidor de desarrollo de Vite
-   # environment:
-     # - NODE_ENV=development  # Define el entorno como desarrollo
-   # depends_on:
-   #   - backend  # Se asegura de que el backend esté disponible antes de iniciar
-  #  networks:
- #     - bar_network  # Red para que los servicios puedan comunicarse entre sí
+   #Frontend (Vite + React)services:
+  frontend:
+    build: ./frontend  # La ruta del frontend
+    container_name: WEB_BAR_TFG_frontend  # Nombre del contenedor
+    ports:
+      - "5173:5173"  # Mapea el puerto 5173 de la máquina local al contenedor
+    volumes:
+      - ./frontend:/app  # Sincroniza el código fuente local con el contenedor (para desarrollo en vivo)
+    working_dir: /app  # Directorio de trabajo dentro del contenedor
+    command: npm run dev -- --host  # Comando para iniciar el servidor de desarrollo de Vite
+    environment:
+      - NODE_ENV=development  # Establece el entorno como desarrollo
+    depends_on:
+      - backend  # Asegura que el backend esté listo antes de arrancar el frontend
+    networks:
+      - bar_network  # Red compartida entre frontend y backend
+
 
   # Backend (Node.js + Express)
   backend:
