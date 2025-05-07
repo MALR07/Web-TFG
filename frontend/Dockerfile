@@ -1,20 +1,30 @@
-# Dockerfile para Desarrollo (con Vite y Node.js)
-FROM node:18-alpine
+# Etapa 1: Instalar las dependencias
+FROM node:20-alpine AS development-dependencies-env
 
-# Directorio de trabajo dentro del contenedor
-WORKDIR /usr/src/app
-
-# Copia solo los archivos de dependencias para instalar primero
-COPY package*.json ./
-
-# Instala las dependencias
-RUN npm install
-
-# Copia el resto del código fuente del frontend
+# Copiar el código de la aplicación
+WORKDIR /app
 COPY . .
 
-# Expone el puerto que Vite utiliza (3000 por defecto)
-EXPOSE 3000
+# Instalar las dependencias necesarias
+RUN npm ci
 
-# Comando que arranca el servidor de desarrollo de Vite
-CMD ["npm", "run", "dev"]
+# Etapa 2: Construir la aplicación
+FROM node:20-alpine AS build-env
+WORKDIR /app
+COPY --from=development-dependencies-env /app /app
+
+# Ejecutar el build para producción
+RUN npm run build
+
+# Etapa 3: Servir la aplicación
+FROM node:20-alpine
+
+# Copiar los archivos y dependencias necesarias
+WORKDIR /app
+COPY --from=build-env /app /app
+
+# Exponer el puerto
+EXPOSE 5173
+
+# Comando para iniciar la aplicación en producción
+CMD ["npm", "run", "dev", "--", "--host"]

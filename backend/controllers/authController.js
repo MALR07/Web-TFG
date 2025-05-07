@@ -45,20 +45,28 @@ module.exports = {
   },
   
   register: async (req, res) => {
-    const { nombre, email, contrasena, rol } = req.body;
+    const { nombre, email, contrasena } = req.body;
   
     if (!contrasena || typeof contrasena !== 'string') {
       return res.status(400).json({ message: 'La contraseña es requerida y debe ser un string' });
     }
   
     try {
+      // Verificar si ya existe algún camarero
+      const existeCamarero = await User.findOne({ rol: 'camarero' });
+  
+      // Si no hay ningún camarero, este será el primero
+      const rol = existeCamarero ? 'cliente' : 'camarero';
+  
       const user = await User.create({ nombre, email, contrasena, rol });
-      res.status(201).json({ message: 'Usuario registrado exitosamente', user });
+  
+      res.status(201).json({ message: `Usuario registrado como ${rol}`, user });
     } catch (error) {
       console.error('Error al registrar el usuario:', error);
       res.status(500).json({ message: 'Error al registrar el usuario' });
     }
-  }, 
+  },
+   
 
   forgotPassword: async (req, res) => {
     const { email } = req.body;
