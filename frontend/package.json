@@ -9,17 +9,15 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@react-router/dev": "^7.5.3",
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
-    "@vitejs/plugin-react": "^4.4.1",
     "isbot": "^5.1.27",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router": "^7.5.3",
-    "react-router-dom": "^7.5.3"
+    "react-router": "^7.5.3"
   },
   "devDependencies": {
+    "@react-router/dev": "^7.5.3",
     "@tailwindcss/vite": "^4.1.4",
     "@types/node": "^20",
     "@types/react": "^19.1.2",
