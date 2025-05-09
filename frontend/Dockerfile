@@ -1,30 +1,22 @@
-# Etapa 1: Instalar las dependencias
 FROM node:20-alpine AS development-dependencies-env
-
-# Copiar el código de la aplicación
+COPY . /app
 WORKDIR /app
-COPY . .
-
-# Instalar las dependencias necesarias
 RUN npm ci
 
-# Etapa 2: Construir la aplicación
-FROM node:20-alpine AS build-env
+FROM node:20-alpine AS production-dependencies-env
+COPY ./package.json package-lock.json /app/
 WORKDIR /app
-COPY --from=development-dependencies-env /app /app
+RUN npm ci --omit=dev
 
-# Ejecutar el build para producción
+FROM node:20-alpine AS build-env
+COPY . /app/
+COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+WORKDIR /app
 RUN npm run build
 
-# Etapa 3: Servir la aplicación
 FROM node:20-alpine
-
-# Copiar los archivos y dependencias necesarias
+COPY ./package.json package-lock.json /app/
+COPY --from=production-dependencies-env /app/node_modules /app/node_modules
+COPY --from=build-env /app/build /app/build
 WORKDIR /app
-COPY --from=build-env /app /app
-
-# Exponer el puerto
-EXPOSE 5173
-
-# Comando para iniciar la aplicación en producción
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["npm", "run", "start"]
