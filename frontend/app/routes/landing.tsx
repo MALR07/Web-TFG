@@ -10,7 +10,7 @@ import Gallery from '../landing/Gallery';
 import Video from '../landing/Video';
 import Dishes from '../landing/Dishes';
 import Menu from '../landing/Menu';
-import Comments from '../landing/Comments';
+import Comment from '../landing/Comment';
 import Footer from '../landing/Footer';
 
 const App = () => {
@@ -19,32 +19,32 @@ const App = () => {
       {/* Header del sitio */}
       <Header />
 
-      {/* Quiénes Somos */}
-      <WhoWeAre />
+    {/* Quiénes Somos */}
+       <WhoWeAre />
 
       {/* Historia */}
-      <History />
+       <History />
 
       {/* Eventos */}
-      <Events />
+        <Events />
 
       {/* Galería */}
       <Gallery />
 
       {/* Videos */}
-      <Video />
+       <Video />
+    
+     {/* Menú */}
+        <Menu />
 
       {/* Platos del Menú */}
-      <Dishes />
-
-      {/* Menú */}
-      <Menu />
+       <Dishes />
 
       {/* Comentarios */}
-      <Comments />
+      <Comment />
 
       {/* Pie de página */}
-      <Footer />
+     <Footer /> 
     </div>
   );
 }

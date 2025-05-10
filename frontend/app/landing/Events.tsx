@@ -26,7 +26,6 @@ const Events = () => {
       image: "/images/concierto-en-vivo.jpg",
       link: "https://www.ejemplo.com/concierto-en-vivo"
     },
-    // Agrega más eventos según sea necesario
   ];
 
   // Estado para gestionar la imagen ampliada
@@ -38,7 +37,8 @@ const Events = () => {
   };
 
   // Función para cerrar la imagen ampliada
-  const handleCloseImage = () => {
+  const handleCloseImage = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que el clic en el área de fondo cierre la imagen
     setExpandedImage(null);
   };
 
@@ -59,7 +59,8 @@ const Events = () => {
             <div onClick={() => handleImageClick(event.image)}>
               <img
                 src={event.image}
-                alt={event.name}
+                alt={`Imagen de ${event.name}`}
+                loading="lazy"  // Lazy loading para mejorar el rendimiento
                 className="w-full h-48 object-cover rounded-t-lg mb-4 transition-all duration-300 transform hover:scale-105"
               />
             </div>
@@ -92,10 +93,6 @@ const Events = () => {
               src={expandedImage}
               alt="Imagen ampliada"
               className="max-w-full max-h-full object-contain rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-110"
-              style={{
-                transform: expandedImage ? "scale(1)" : "scale(0)",
-                transition: "transform 0.3s ease-in-out, opacity 0.3s ease-in-out"
-              }}
             />
             {/* Botón de Cerrar */}
             <button

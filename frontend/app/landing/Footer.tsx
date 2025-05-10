@@ -1,38 +1,43 @@
-// Footer (Pie de página con Facebook y derechos reservados)
-const Footer = () => (
-    <footer className="bg-gray-800 text-white py-4 mt-16">
-      <div className="container mx-auto text-center">
+const Footer = () => {
+  const currentYear = new Date().getFullYear(); // Año dinámico
+
+  return (
+    <footer className="bg-gray-800 text-white text-center py-6 mt-12">
+      <p className="text-sm md:text-base text-gray-400">
+        &copy; {currentYear} <span className="font-semibold text-white">Bar Pepin</span>. Todos los derechos reservados.
+      </p>
+      <div className="mt-1 text-sm text-gray-400 italic">
+        Hecho con ❤️ por el equipo de Bar Pepin
+      </div>
+      <div className="mt-4 flex justify-center space-x-6">
         {/* Enlace a Facebook */}
-        <div className="flex justify-center mb-4">
-          <a
-            href="https://www.facebook.com/tu-bar"  // Reemplaza con la URL de la cuenta de Facebook del bar
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2 hover:text-blue-500"
-          >
-            {/* Ícono de Facebook */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-6 h-6"
-            >
-              <path d="M18 2a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h12zm-6 12v-4H9V9h3V7a4 4 0 0 1 4-4h2v4h-2a2 2 0 0 0-2 2v2h4l-1 4h-3v8h-4v-8H9v-4h4V7h-1a1 1 0 0 0-1 1v2h-2z" />
-            </svg>
-            <span>Facebook</span>
-          </a>
-        </div>
-  
-        {/* Derechos reservados */}
-        <p className="text-sm text-gray-400">© 2025 Restaurante Gourmet. Todos los derechos reservados.</p>
+        <a
+          href="https://www.facebook.com/people/Bar-Pepin/100064156744460/#"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+            alt="Logo de Facebook de Bar Pepin"
+            className="w-8 h-8 hover:scale-110 transition-transform duration-200"
+          />
+        </a>
+        {/* Puedes añadir otros íconos aquí, por ejemplo: Instagram, Twitter */}
+        <a
+          href="https://www.instagram.com/bar_pepin/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/9/95/Instagram_logo_2022.svg"
+            alt="Logo de Instagram de Bar Pepin"
+            className="w-8 h-8 hover:scale-110 transition-transform duration-200"
+          />
+        </a>
+        {/* Agregar más iconos según sea necesario */}
       </div>
     </footer>
   );
-    
-  export default Footer;
+};
+
+export default Footer;
