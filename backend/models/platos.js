@@ -15,8 +15,8 @@ module.exports = (sequelize, DataTypes) => {
     },
 
     imagen: {
-      type: DataTypes.STRING, // guarda solo el nombre del archivo
-      allowNull: true
+      type: DataTypes.STRING, 
+      allowNull: true,
     },
     
     cantidad_disponible: {

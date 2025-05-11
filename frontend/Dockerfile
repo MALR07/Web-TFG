@@ -1,22 +1,33 @@
-FROM node:20-alpine AS development-dependencies-env
-COPY . /app
-WORKDIR /app
-RUN npm ci
+# Etapa 1: Construcción
+FROM node:18 AS build
 
-FROM node:20-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
+# Crear y establecer el directorio de trabajo
 WORKDIR /app
-RUN npm ci --omit=dev
 
-FROM node:20-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
+# Copiar los archivos package.json y package-lock.json (o npm-shrinkwrap.json)
+COPY package*.json ./
+
+# Instalar las dependencias del proyecto
+RUN npm install
+
+# Copiar todo el código fuente al contenedor
+COPY . .
+
+# Construir el proyecto
 RUN npm run build
 
-FROM node:20-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
+# Etapa 2: Producción
+FROM node:18-slim
+
+# Crear y establecer el directorio de trabajo
 WORKDIR /app
+
+# Copiar solo los archivos necesarios para la ejecución
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+
+# Exponer el puerto en el que la app escuchará
+EXPOSE 5173
+
+# Iniciar el servidor de producción
 CMD ["npm", "run", "start"]
