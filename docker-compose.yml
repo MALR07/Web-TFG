@@ -8,6 +8,7 @@ services:
       - "5173:5173"  # Mapea el puerto 5173 de la máquina local al contenedor
     volumes:
       - ./frontend:/app  # Sincroniza el código fuente local con el contenedor (para desarrollo en vivo)
+      - /app/node_modules  # Evita conflictos de dependencias entre el host y el contenedor
     working_dir: /app  # Directorio de trabajo dentro del contenedor
     command: npm run dev -- --host  # Comando para iniciar el servidor de desarrollo de Vite
     environment:
