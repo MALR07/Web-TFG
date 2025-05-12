@@ -1,5 +1,5 @@
 import React from 'react';
-import '../app.css';  
+import '../../App.css';
 
 // Importar los componentes que ya tienes creados
 import Header from '../landing/Header';

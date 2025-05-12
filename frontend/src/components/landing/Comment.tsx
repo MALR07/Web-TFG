@@ -40,19 +40,22 @@ const Comment: React.FC = () => {
   }, []); // Este efecto solo se ejecuta una vez cuando el componente se monta
 
   return (
-    <div className="mt-4">
-      <h4 className="text-lg font-semibold">Comentarios:</h4>
+    <div className="mt-8 py-6 bg-gray-100 rounded-lg shadow-lg max-w-4xl mx-auto">
+      <h4 className="text-3xl font-semibold text-center text-gray-800 mb-6">Comentarios:</h4>
       {/* Si hay un error al cargar los comentarios, lo mostramos */}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-center text-red-500 text-lg">{error}</p>}
 
-      <ul className="text-sm text-gray-600 mb-4">
+      <ul className="space-y-6">
         {comments.length === 0 ? (
-          <p>No hay comentarios aún.</p> // Mensaje si no hay comentarios
+          <p className="text-center text-gray-500">No hay comentarios aún.</p> // Mensaje si no hay comentarios
         ) : (
           comments.map((comment, idx) => (
-            <li key={idx} className="mb-2">
-              "{comment.comentario}" - <em>{comment.User?.nombre || 'Anónimo'}</em>
-              <div className="text-yellow-400">
+            <li key={idx} className="flex flex-col items-center bg-white p-6 rounded-lg shadow-md text-center">
+              <p className="text-xl text-gray-700 italic">"{comment.comentario}"</p>
+              <p className="mt-2 text-gray-600">
+                - <span className="font-semibold">{comment.User?.nombre || 'Anónimo'}</span>
+              </p>
+              <div className="mt-2 text-yellow-400">
                 {typeof comment.puntuacion === 'number' && comment.puntuacion > 0
                   ? '⭐'.repeat(comment.puntuacion) // Solo muestra estrellas si la puntuación es un número positivo
                   : 'Sin puntuación'}

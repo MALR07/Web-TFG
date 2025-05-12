@@ -1,8 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import './App.css';  // Ruta relativa para App.css
+import './App.css';
 
-// Landing Page Components (ahora en "components/landing")
+// Landing Page Components
 import Header from './components/landing/Header';
 import WhoWeAre from './components/landing/WhoWeAre';
 import History from './components/landing/History';
@@ -14,59 +14,64 @@ import Menu from './components/landing/Menu';
 import Comment from './components/landing/Comment';
 import Footer from './components/landing/Footer';
 
-// Auth Components
-//import Login from './components/routes/login';
-//import Register from './components/routes/register';
-//import ForgotPassword from './components/routes/changecontra';
 
-// Reservas y Gestión de Platos (Para el camarero)
-import ManageReservations from './components/componetns/CamareroReserva';  
-import ManageDishes from './components/componetns/PlatosManagement';  
+// Importamos el contexto de autenticación
+import Login from './components/routes/login'; // Asegúrate de que las rutas sean correctas
+import Register from './components/routes/register';
+import ForgotPassword from './components/routes/changecontra';
 
-// Componentes de cliente
-import ReservationPage from './components/componetns//ClientReserva'; 
+// Componente de rutas protegidas
+import PrivateRoute from './components/componetns/PrivateRoute.jsx';
 
-const Landing = () => {
+// Componente de gestión (solo para camarero)
+import ManageReservations from './components/componetns/CamareroReserva.tsx';  
+import ManageDishes from './components/componetns/PlatosManagement.tsx';  
+
+// Componente de cliente
+import ReservationPage from './components/componetns/ClientReserva.tsx'; // Asegúrate de que las rutas sean correctas
+
+const App = () => {
   return (
     <div className="font-sans bg-gray-50 text-gray-900">
-      {/* Header se mostrará en todas las páginas */}
       <Header />
 
       <Routes>
-        {/* Ruta principal (landing) */}
-        <Route 
-          path="/" 
-          element={
-            <>
-              <WhoWeAre />
-              <History />
-              <Events />
-              <Gallery />
-              <Video />
-              <Menu />
-              <Dishes />
-              <Comment />
-            </>
-          }
-        />
+        {/* Landing Page */}
+        <Route path="/" element={
+          <>
+            <WhoWeAre />
+            <History />
+            <Events />
+            <Gallery />
+            <Video />
+            <Menu />
+            <Dishes />
+            <Comment />
+          </>
+        } />
 
-        {/* Rutas para Login y Register */}
+        {/* Rutas protegidas */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/reservations" element={<ReservationPage />} />
+        </Route>
+
+        {/* Rutas protegidas solo para camareros */}
+        <Route element={<PrivateRoute requiredRole="camarero" />}>
+          <Route path="/manage-reservations" element={<ManageReservations />} />
+          <Route path="/manage-dishes" element={<ManageDishes />} />
+        </Route>
+
+        {/* Rutas públicas */}
+        {/* Rutas de Autenticación */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Rutas para reservas (Cliente) */}
-        <Route path="/reservations" element={<ReservationPage />} />
+      </Routes>
 
-        {/* Rutas para gestión de reservas y platos (Camarero) */}
-        <Route path="/manage-reservations" element={<ManageReservations />} />
-        <Route path="/manage-dishes" element={<ManageDishes />} />
-      </Routes> 
-    
-      {/* Footer se mostrará en todas las páginas */}
       <Footer />
     </div>
   );
 };
 
-export default Landing;
+export default App;

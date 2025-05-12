@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react'; // npm install slick-carousel react-slick
+import Slider from 'react-slick'; // Importa react-slick
+import 'slick-carousel/slick/slick.css'; // Importa los estilos de slick
+import 'slick-carousel/slick/slick-theme.css'; // Importa el tema de slick
 
 const Carousel = () => {
   // Array de imágenes para el carrusel
@@ -12,29 +15,16 @@ const Carousel = () => {
     'https://source.unsplash.com/1600x900/?celebration',
   ];
 
-  // Estado para el índice de la imagen actual
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // Función para avanzar al siguiente slide
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+  // Configuración de Slick Carousel
+  const settings = {
+    dots: true, // Muestra los puntos de navegación
+    infinite: true, // El carrusel es infinito (una vez que llega al final vuelve al inicio)
+    speed: 500, // Velocidad de transición
+    slidesToShow: 1, // Número de imágenes a mostrar en una vez
+    slidesToScroll: 1, // Número de imágenes a desplazar en cada clic
+    autoplay: true, // Hace que el carrusel avance automáticamente
+    autoplaySpeed: 3000, // Tiempo entre cada cambio de imagen
   };
-
-  // Función para retroceder al slide anterior
-  const prevSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? images.length - 1 : prevIndex - 1
-    );
-  };
-
-  // Use effect para el auto-scroll (cada 3 segundos)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 3000); // Cambia la imagen cada 3 segundos
-
-    return () => clearInterval(interval); // Limpia el intervalo cuando el componente se desmonte
-  }, []);
 
   return (
     <section id="galeria" className="py-16 px-4 bg-gray-100 text-center">
@@ -42,28 +32,17 @@ const Carousel = () => {
 
       {/* Carrusel */}
       <div className="relative max-w-6xl mx-auto">
-        <div className="h-[600px] bg-gray-300 relative overflow-hidden"> {/* Aumentamos la altura */}
-          {/* Imagen actual del carrusel */}
-          <img
-            src={images[currentIndex]}
-            alt="Carrusel"
-            className="w-full h-full object-cover transition-all duration-500 ease-in-out transform"
-          />
-        </div>
-
-        {/* Botones de navegación */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white text-gray-800 p-3 rounded-full shadow-lg"
-        >
-          &#10094;
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white text-gray-800 p-3 rounded-full shadow-lg"
-        >
-          &#10095;
-        </button>
+        <Slider {...settings}>
+          {images.map((image, index) => (
+            <div key={index}>
+              <img
+                src={image}
+                alt={`Carrusel ${index}`}
+                className="w-full h-[600px] object-cover transition-all duration-500 ease-in-out"
+              />
+            </div>
+          ))}
+        </Slider>
       </div>
 
       {/* Botón de "Ver Más" que redirige a Facebook */}

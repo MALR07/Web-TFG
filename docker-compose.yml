@@ -5,7 +5,7 @@ services:
     build: ./frontend  # La ruta del frontend
     container_name: WEB_BAR_TFG_frontend  # Nombre del contenedor
     ports:
-      - "5173:5173"  # Mapea el puerto 5173 de la máquina local al contenedor
+      - "5173:5173"  
     volumes:
       - ./frontend:/app  # Sincroniza el código fuente local con el contenedor (para desarrollo en vivo)
       - /app/node_modules  # Evita conflictos de dependencias entre el host y el contenedor

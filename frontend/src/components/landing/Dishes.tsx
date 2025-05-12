@@ -23,21 +23,21 @@ const DishList = () => {
   }, []);
 
   return (
-    <div className="py-16 px-8">
-      <h2 className="text-3xl font-bold text-center mb-8">Platos Disponibles</h2>
+    <div className="py-16 px-8 bg-gray-100 min-h-screen">
+      <h2 className="text-4xl font-bold text-center text-gray-800 mb-12">Platos Disponibles</h2>
 
-      {error && <p className="text-red-500 text-center">{error}</p>}
+      {error && <p className="text-red-500 text-center text-xl mb-6">{error}</p>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {dishes.map((dish) => (
-          <div key={dish.id} className="bg-white p-6 rounded-lg shadow-lg">
+          <div key={dish.id} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
             <img
               src={dish.imagen || 'default-image.jpg'} // Fallback si no hay imagen
               alt={dish.nombre}
-              className="w-full h-48 object-cover rounded-lg mb-4"
+              className="w-full h-48 object-cover rounded-xl mb-4"
             />
-            <h3 className="text-xl font-semibold text-center">{dish.nombre}</h3>
-            <p className="text-sm text-gray-500 text-center mb-4">{dish.descripcion}</p>
+            <h3 className="text-xl font-semibold text-center text-gray-800 mb-2">{dish.nombre}</h3>
+            <p className="text-sm text-gray-500 text-center">{dish.descripcion}</p>
           </div>
         ))}
       </div>
@@ -46,4 +46,3 @@ const DishList = () => {
 };
 
 export default DishList;
-

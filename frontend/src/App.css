@@ -1,1 +1,73 @@
 @import "tailwindcss";
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+body {
+  @apply bg-white text-gray-900;  /* Fondo blanco y texto oscuro */
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+/* Asegura que el contenedor root ocupe toda la altura de la página */
+#root {
+  min-height: 100%;
+}
+/* Animación de burbujas */
+@keyframes bubbleEffect {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-10px);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Clase para animar los botones como si fueran "burbujas" o "cerveza" */
+.bubble-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.bubble-effect:hover {
+  animation: bubbleEffect 0.5s ease-in-out infinite;
+}
+
+/* Efecto de rebote para simular la "cerveza" */
+.bubble-effect::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background-color: #f9d342; /* Amarillo de la cerveza */
+  border-radius: 50%;
+  opacity: 0;
+  animation: bubbleAnimation 1s ease-in-out infinite;
+}
+
+@keyframes bubbleAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-15px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.5);
+  }
+}
+
