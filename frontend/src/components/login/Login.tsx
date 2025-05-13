@@ -1,56 +1,84 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useAuth } from "../componetns/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const AU = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Verificar si los campos están vacíos
-    if (!email || !password) {
-      setError("Por favor, complete todos los campos.");
+    if (!email.trim() || !password.trim()) {
+      setError('Por favor, complete todos los campos.');
       return;
     }
 
-    setError("");  // Limpiar cualquier error previo
-    setLoading(true);  // Indicamos que la solicitud está en proceso
+    const isEmailValid = /^\S+@\S+\.\S+$/.test(email);
+    if (!isEmailValid) {
+      setError('Por favor, ingresa un correo electrónico válido.');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
 
     try {
-      // Hacemos la solicitud POST con las credenciales
-      const response = await axios.post("http://localhost:3001/login", {
-        email: email,
-        password: password,
+      const response = await axios.post('http://localhost:3001/auth/login', {
+        email,
+        password,
       });
 
-      // Si la respuesta es exitosa, recibimos el token
-      if (response.data.success && response.data.token) {
-        // Guardamos el token en localStorage para futuras solicitudes
-        localStorage.setItem("authToken", response.data.token);
+      const { token } = response.data;
 
-        // Redirigimos a la página principal
-        window.location.href = "/";  // O puedes redirigir a una ruta diferente
+      if (token) {
+        login(token); // <--- ahora solo usamos el token
+
+        const decoded: any = jwtDecode(token);
+        const role = decoded.rol || 'cliente'; // asegúrate de usar "rol" si así viene del backend
+
+        if (role === 'camarero') {
+          navigate('/manage-reservations');
+        } else {
+          navigate('/');
+        }
       } else {
-        setError("Credenciales incorrectas");
+        setError('Credenciales incorrectas o token no recibido.');
       }
+
     } catch (error) {
-      setError("Hubo un problema con el inicio de sesión. Intenta de nuevo.");
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          setError('Credenciales incorrectas.');
+        } else if (error.response) {
+          setError('Error en el servidor.');
+        } else if (error.request) {
+          setError('No se pudo conectar al servidor.');
+        }
+      } else {
+        setError('Hubo un problema con el inicio de sesión.');
+      }
+      console.error('Error en el login:', error);
     } finally {
-      setLoading(false);  // Finaliza el proceso de carga
+      setLoading(false);
     }
   };
 
   return (
     <section id="login" className="py-16 px-4 bg-gray-100 text-center">
       <h2 className="text-4xl font-semibold text-gray-800 mb-6">Iniciar Sesión</h2>
-      
+
       <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
         <form onSubmit={handleSubmit}>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
           <div className="mb-4">
             <label htmlFor="email" className="block text-left text-gray-700">Correo Electrónico</label>
             <input
@@ -63,7 +91,7 @@ const AU = () => {
               required
             />
           </div>
-          
+
           <div className="mb-6">
             <label htmlFor="password" className="block text-left text-gray-700">Contraseña</label>
             <input
@@ -76,16 +104,16 @@ const AU = () => {
               required
             />
           </div>
-          
+
           <button
             type="submit"
             className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300"
-            disabled={loading}  // Deshabilitar el botón mientras se hace la solicitud
+            disabled={loading}
           >
-            {loading ? "Cargando..." : "Iniciar Sesión"}
+            {loading ? 'Cargando...' : 'Iniciar Sesión'}
           </button>
         </form>
-        
+
         <div className="mt-4">
           <p className="text-sm text-gray-500">
             ¿No tienes cuenta? <a href="/register" className="text-blue-500 hover:underline">Regístrate aquí</a>

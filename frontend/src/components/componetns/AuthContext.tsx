@@ -1,69 +1,86 @@
-import React, {
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-} from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
-import type { ReactNode } from 'react'; 
+interface DecodedToken {
+  id_user: number;
+  email: string;
+  rol: string;
+  exp: number;
+  iat: number;
+}
 
-// Tipo del contexto
 interface AuthContextType {
-  user: any;
-  login: (userData: any, userRole: string) => void;
+  user: DecodedToken | null;
+  token: string | null;
+  login: (token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
   role: string | null;
 }
 
-// Props del proveedor
 interface AuthProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-// Crear el contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Proveedor del contexto
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<DecodedToken | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedRole = localStorage.getItem('role');
-    if (storedUser && storedRole) {
-      setUser(JSON.parse(storedUser));
-      setRole(storedRole);
-      setIsAuthenticated(true);
+    try {
+      const storedToken = localStorage.getItem('token');
+
+      if (storedToken) {
+        const decoded = jwtDecode<DecodedToken>(storedToken);
+        const isExpired = decoded.exp * 1000 < Date.now();
+
+        if (!isExpired) {
+          setToken(storedToken);
+          setUser(decoded);
+          setIsAuthenticated(true);
+        } else {
+          logout(); // Token expirado
+        }
+      }
+    } catch (error) {
+      console.error('Error cargando datos de autenticación:', error);
+      logout(); // Datos corruptos
     }
   }, []);
 
-  const login = (userData: any, userRole: string) => {
-    setUser(userData);
-    setRole(userRole);
-    setIsAuthenticated(true);
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('role', userRole);
+  const login = (jwt: string) => {
+    try {
+      const decoded = jwtDecode<DecodedToken>(jwt);
+      setToken(jwt);
+      setUser(decoded);
+      setIsAuthenticated(true);
+      localStorage.setItem('token', jwt);
+    } catch (error) {
+      console.error('Error al decodificar el token:', error);
+    }
   };
 
   const logout = () => {
+    setToken(null);
     setUser(null);
-    setRole(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
+    localStorage.removeItem('token');
   };
 
+  const role = user?.rol || null;
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, role }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, isAuthenticated, role }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook personalizado
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {

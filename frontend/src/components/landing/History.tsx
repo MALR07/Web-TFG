@@ -86,35 +86,39 @@ const History = () => {
         </div>
       </section>
 
-      {/* Nueva sección "Encuéntranos" con el mapa */}
+      {/* Nueva sección "Encuéntranos" con la dirección y el mapa */}
       <section
+        className="py-16 px-4 bg-gray-100"
         id="encuentranos"
-        className="py-16 px-4 bg-gray-100 text-center"
       >
-        <h2
-          className={`text-4xl font-semibold text-gray-800 mb-12 transform transition-all duration-700 ease-out ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          Encuéntranos
-        </h2>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Dirección */}
+          <div className="w-full lg:w-1/2 text-center lg:text-left">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4">Dirección</h3>
+            <p className="text-lg text-gray-600 mb-4">
+              Visítanos en nuestra ubicación:
+            </p>
+            <p className="text-lg font-medium text-gray-800 mb-4">
+              1600 Folsom St, San Francisco, CA 94107, USA
+            </p>
+            <p className="text-md text-gray-500">
+              ¡Te esperamos con los brazos abiertos!
+            </p>
+          </div>
 
-        <div
-          className={`flex justify-center bg-black bg-opacity-70 rounded-lg p-8 shadow-lg ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          } transition-all duration-700 ease-out`}
-        >
-          {/* Mapa de Google - Reemplaza la URL con tu ubicación */}
-          <iframe
-            width="100%"
-            height="450"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.209888473908!2d-122.41941628468158!3d37.77492977975809!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80858183adf57a17%3A0x25f658a970b9f4d!2s1600%20Folsom%20St%2C%20San%20Francisco%2C%20CA%2094170%2C%20USA!5e0!3m2!1ses-419!2smx!4v1634062237051!5m2!1ses-419!2smx"
-            title="Ubicación del restaurante"
-            frameBorder="0"
-            style={{ border: "0" }}
-            allowFullScreen
-            aria-hidden="false"
-          ></iframe>
+          {/* Mapa de Google */}
+          <div className="w-full lg:w-1/2 bg-black rounded-lg shadow-lg overflow-hidden">
+            <iframe
+              width="100%"
+              height="450"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.209888473908!2d-122.41941628468158!3d37.77492977975809!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80858183adf57a17%3A0x25f658a970b9f4d!2s1600%20Folsom%20St%2C%20San%20Francisco%2C%20CA%2094170%2C%20USA!5e0!3m2!1ses-419!2smx!4v1634062237051!5m2!1ses-419!2smx"
+              title="Ubicación del restaurante"
+              frameBorder="0"
+              style={{ border: "0" }}
+              allowFullScreen
+              aria-hidden="false"
+            ></iframe>
+          </div>
         </div>
       </section>
     </div>

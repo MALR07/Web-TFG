@@ -43,15 +43,15 @@ const Comment: React.FC = () => {
     <div className="mt-8 py-6 bg-gray-100 rounded-lg shadow-lg max-w-4xl mx-auto">
       <h4 className="text-3xl font-semibold text-center text-gray-800 mb-6">Comentarios:</h4>
       {/* Si hay un error al cargar los comentarios, lo mostramos */}
-      {error && <p className="text-center text-red-500 text-lg">{error}</p>}
+      {error && <p className="text-center text-red-500 text-lg mb-6">{error}</p>}
 
       <ul className="space-y-6">
         {comments.length === 0 ? (
-          <p className="text-center text-gray-500">No hay comentarios aún.</p> // Mensaje si no hay comentarios
+          <p className="text-center text-gray-500 text-lg">No hay comentarios aún.</p> // Mensaje si no hay comentarios
         ) : (
           comments.map((comment, idx) => (
-            <li key={idx} className="flex flex-col items-center bg-white p-6 rounded-lg shadow-md text-center">
-              <p className="text-xl text-gray-700 italic">"{comment.comentario}"</p>
+            <li key={idx} className="flex flex-col items-center bg-white p-6 rounded-lg shadow-md text-center transition-transform transform hover:scale-105">
+              <p className="text-xl text-gray-700 italic mb-4">"{comment.comentario}"</p>
               <p className="mt-2 text-gray-600">
                 - <span className="font-semibold">{comment.User?.nombre || 'Anónimo'}</span>
               </p>

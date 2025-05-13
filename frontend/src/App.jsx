@@ -2,6 +2,9 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
 
+// Importamos el AuthProvider
+import { AuthProvider } from './components/componetns/AuthContext';
+
 // Landing Page Components
 import Header from './components/landing/Header';
 import WhoWeAre from './components/landing/WhoWeAre';
@@ -14,63 +17,69 @@ import Menu from './components/landing/Menu';
 import Comment from './components/landing/Comment';
 import Footer from './components/landing/Footer';
 
-
-// Importamos el contexto de autenticación
-import Login from './components/routes/login'; // Asegúrate de que las rutas sean correctas
+// Rutas de Autenticación
+import Login from './components/routes/login'; 
 import Register from './components/routes/register';
 import ForgotPassword from './components/routes/changecontra';
 
-// Componente de rutas protegidas
-import PrivateRoute from './components/componetns/PrivateRoute.jsx';
+// Rutas protegidas
+import PrivateRoute from './components/componetns/PrivateRoute';
 
-// Componente de gestión (solo para camarero)
-import ManageReservations from './components/componetns/CamareroReserva.tsx';  
-import ManageDishes from './components/componetns/PlatosManagement.tsx';  
+// Componentes para camarero
+import ManageReservations from './components/componetns/CamareroReserva';  
+import ManageDishes from './components/componetns/PlatosManagement';  
 
 // Componente de cliente
-import ReservationPage from './components/componetns/ClientReserva.tsx'; // Asegúrate de que las rutas sean correctas
+import ReservationPage from './components/componetns/ClientReserva';
+
+// Página de acceso denegado
+import AccessDenied from './components/routes/accesdenied';
 
 const App = () => {
   return (
-    <div className="font-sans bg-gray-50 text-gray-900">
-      <Header />
+    // Envolvemos la aplicación con el AuthProvider
+    <AuthProvider>
+      <div className="font-sans bg-gray-50 text-gray-900">
+        <Header />
 
-      <Routes>
-        {/* Landing Page */}
-        <Route path="/" element={
-          <>
-            <WhoWeAre />
-            <History />
-            <Events />
-            <Gallery />
-            <Video />
-            <Menu />
-            <Dishes />
-            <Comment />
-          </>
-        } />
+        <Routes>
+          {/* Landing Page */}
+          <Route path="/" element={
+            <>
+              <WhoWeAre />
+              <div id="history"><History /></div>
+              <div id="events"><Events /></div>
+              <div id="gallery"><Gallery /></div>
+              <div id="video"><Video /></div>
+              <div id="menu"><Menu /></div>
+              <div id="dishes"><Dishes /></div>
+              <div id="comments"><Comment /></div>
+            </>
+          } />
 
-        {/* Rutas protegidas */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/reservations" element={<ReservationPage />} />
-        </Route>
+          {/* Rutas protegidas para el cliente */}
+          <Route element={<PrivateRoute requiredRole="cliente" />}>
+            <Route path="/reservations" element={<ReservationPage />} />
+          </Route>
 
-        {/* Rutas protegidas solo para camareros */}
-        <Route element={<PrivateRoute requiredRole="camarero" />}>
-          <Route path="/manage-reservations" element={<ManageReservations />} />
-          <Route path="/manage-dishes" element={<ManageDishes />} />
-        </Route>
+          {/* Rutas protegidas solo para camareros */}
+          <Route element={<PrivateRoute requiredRole="camarero" />}>
+            <Route path="/manage-reservations" element={<ManageReservations />} />
+            <Route path="/manage-dishes" element={<ManageDishes />} />
+          </Route>
 
-        {/* Rutas públicas */}
-        {/* Rutas de Autenticación */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* Rutas públicas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      </Routes>
+          {/* Ruta de acceso denegado */}
+          <Route path="/access-denied" element={<AccessDenied />} />
+        </Routes>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 };
 

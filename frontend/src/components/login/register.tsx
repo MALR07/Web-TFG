@@ -1,18 +1,41 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
     if (!name || !email || !password) {
       setError("Por favor, complete todos los campos.");
-    } else {
-      setError("");
-      // Lógica para registrar al usuario
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:3001/auth/register", {
+        nombre: name,
+        email,             // ✅ Usa "email"
+        contrasena: password,  // ✅ Usa "contrasena" (sin ñ)
+      });
+
+      setSuccess("Registro exitoso. ¡Ahora puedes iniciar sesión!");
+      setName("");
+      setEmail("");
+      setPassword("");
+    } catch (err: any) {
+      console.error(err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Error al registrar. Intenta nuevamente.");
+      }
     }
   };
 
@@ -22,7 +45,8 @@ const Register = () => {
 
       <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
         <form onSubmit={handleSubmit}>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+          {success && <p className="text-green-600 text-sm mb-2">{success}</p>}
 
           <div className="mb-4">
             <label htmlFor="name" className="block text-left text-gray-700">Nombre Completo</label>

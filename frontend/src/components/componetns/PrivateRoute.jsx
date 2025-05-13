@@ -2,20 +2,30 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './AuthContext';  // Importamos el hook para acceder al contexto
 
+// Componente PrivateRoute con soporte para múltiples roles
 const PrivateRoute = ({ requiredRole = null }) => {
   const { isAuthenticated, role } = useAuth();  // Obtenemos el estado de autenticación y rol
 
-  // Si no está autenticado, redirigimos al login
+  // Si el usuario no está autenticado, redirigimos a la página de login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Si el rol no coincide, redirigimos a una página de acceso denegado o algo similar
-  if (requiredRole && requiredRole !== role) {
-    return <Navigate to="/access-denied" replace />;
+  // Si se requiere un rol específico, validamos si el rol del usuario es adecuado
+  if (requiredRole) {
+    // Si el rol requerido es un arreglo, verificamos si el rol del usuario está en el arreglo
+    if (Array.isArray(requiredRole)) {
+      if (!requiredRole.includes(role)) {
+        return <Navigate to="/access-denied" replace />;
+      }
+    } else if (requiredRole !== role) {
+      // Si el rol requerido no coincide con el rol del usuario
+      return <Navigate to="/access-denied" replace />;
+    }
   }
 
-  return <Outlet />;  // Si todo es correcto, renderiza las rutas hijas
+  // Si todo es correcto, renderiza las rutas hijas
+  return <Outlet />;
 };
 
 export default PrivateRoute;

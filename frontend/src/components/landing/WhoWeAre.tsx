@@ -76,7 +76,7 @@ const WhoWeAre = () => {
 
         {/* Botón animado que entra desde abajo */}
         <a
-          href="#menu"
+          href="#dishes" // Aquí cambiamos a #dishes para hacer scroll a la sección de "Platos"
           className={`px-6 py-3 bg-yellow-600 text-white text-lg font-semibold rounded-full transition-all duration-500 ease-out transform hover:scale-105 hover:shadow-lg`}
           style={{
             opacity: isVisible ? 1 : 0,

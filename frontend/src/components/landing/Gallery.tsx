@@ -24,10 +24,20 @@ const Carousel = () => {
     slidesToScroll: 1, // Número de imágenes a desplazar en cada clic
     autoplay: true, // Hace que el carrusel avance automáticamente
     autoplaySpeed: 3000, // Tiempo entre cada cambio de imagen
+    prevArrow: (
+      <button className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-md hover:bg-gray-700 transition duration-300">
+        &lt;
+      </button>
+    ),
+    nextArrow: (
+      <button className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-md hover:bg-gray-700 transition duration-300">
+        &gt;
+      </button>
+    ),
   };
 
   return (
-    <section id="galeria" className="py-16 px-4 bg-gray-100 text-center">
+    <section id="galeria" className="py-16 px-4 bg-gray-100 text-center relative">
       <h2 className="text-4xl font-semibold text-gray-800 mb-6">Galería</h2>
 
       {/* Carrusel */}

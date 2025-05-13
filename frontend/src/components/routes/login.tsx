@@ -12,9 +12,6 @@ import ForgotPassword from '../routes/changecontra';
 const Login = () => {
   return (
     <div className="font-sans bg-gray-50 text-gray-900">
-      {/* Header se mostrará en todas las páginas */}
-      <Header />
-
       <Routes>
         {/* Ruta principal (landing) */}
         <Route path="/" element={
@@ -28,9 +25,6 @@ const Login = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
-
-      {/* Footer se mostrará en todas las páginas */}
-      <Footer />
     </div>
   );
 };
