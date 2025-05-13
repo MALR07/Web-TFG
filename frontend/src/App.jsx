@@ -6,11 +6,11 @@ import './App.css';
 import { AuthProvider } from './components/componetns/AuthContext';
 
 // Landing Page Components
-import Header from './components/landing/Header';
+import Header from './components/landing/Header.jsx';
 import WhoWeAre from './components/landing/WhoWeAre';
-import History from './components/landing/History';
+import History from './components/landing/History.jsx';
 import Events from './components/landing/Events';
-import Gallery from './components/landing/Gallery';
+import Gallery from './components/landing/Gallery.jsx';
 import Video from './components/landing/Video';
 import Dishes from './components/landing/Dishes';
 import Menu from './components/landing/Menu';

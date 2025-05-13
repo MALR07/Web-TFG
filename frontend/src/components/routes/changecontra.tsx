@@ -1,18 +1,16 @@
 import React from 'react';
 import '../../App.css';  
-// Importar los componentes que ya tienes creados
-import Header from '../landing/Header';
-import Footer from '../landing/Footer';
 
+import ForgotPassword from '../login/ForgotPassword';
 const App = () => {
   return (
-    <div className="font-sans bg-gray-50 text-gray-900">
-      {/* Header del sitio */}
-      <Header />
-
-      {/* Pie de página */}
-      <Footer />
-    </div>
+      <div className="font-sans bg-gray-50 text-gray-900">
+        <main className="container mx-auto py-8">
+          <div className="flex justify-center">
+            <ForgotPassword/>
+          </div>
+        </main>
+      </div>
   );
 }
 

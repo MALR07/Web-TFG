@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const Events = () => {
   const events = [
@@ -28,62 +28,78 @@ const Events = () => {
     },
   ];
 
-  // Estado para gestionar la imagen ampliada
-  const [expandedImage, setExpandedImage] = useState<string | null>(null);
-
-  // Función para manejar la ampliación de la imagen
-  const handleImageClick = (image: string) => {
-    setExpandedImage(image);
-  };
-
-  // Función para cerrar la imagen ampliada
-  const handleCloseImage = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que el clic en el área de fondo cierre la imagen
-    setExpandedImage(null);
-  };
-
   const [isVisible, setIsVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
-  // Detectar cuando el usuario hace scroll para aplicar animación
+  const sectionRef = useRef(null);
+
+  // Usamos IntersectionObserver para la visibilidad de la sección
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 200) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setIsVisible(true);
+      },
+      { threshold: 0.3 }
+    );
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => {
+      if (sectionRef.current) observer.unobserve(sectionRef.current);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const openImage = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setTimeout(() => setIsImageOpen(true), 20);
+  };
+
+  const closeImage = () => {
+    setIsImageOpen(false);
+    setTimeout(() => setSelectedImage(null), 300);
+  };
 
   return (
     <div>
       {/* Sección de Eventos */}
-      <section id="eventos" className="py-16 px-4 bg-white text-center">
-        <h2 className="text-4xl font-semibold text-gray-800 mb-6">Eventos Pasados</h2>
+      <section
+        id="eventos"
+        ref={sectionRef}
+        className="py-16 px-4 bg-white text-center"
+      >
+        <h2
+          className={`text-4xl font-semibold text-gray-800 mb-6 transition-all duration-700 ease-in-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          Eventos Pasados
+        </h2>
         <p className="text-lg text-gray-600 mb-12">
           ¡Revive los momentos más especiales en Bar Pepín con nuestros eventos exclusivos!
         </p>
 
         {/* Contenedor para los eventos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {events.map((event) => (
+          {events.map((event, index) => (
             <div
               key={event.id}
-              className="bg-gray-100 p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+              className={`bg-black bg-opacity-60 p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-gray-500 transform ${
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+              style={{ transitionDelay: `${index * 100}ms` }} // Animación en cascada
+              onClick={() => openImage(event.image)}
             >
-              <div onClick={() => handleImageClick(event.image)}>
+              <div>
                 <img
                   src={event.image}
                   alt={`Imagen de ${event.name}`}
-                  loading="lazy"  // Lazy loading para mejorar el rendimiento
                   className="w-full h-48 object-cover rounded-t-lg mb-4 transition-all duration-300 transform hover:scale-105"
+                  loading="lazy"
                 />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-2">{event.name}</h3>
-              <p className="text-sm text-gray-500 mb-4">{event.date}</p>
-              <p className="text-base text-gray-600 mb-4">{event.description}</p>
+              <h3 className="text-2xl font-semibold text-white mb-2">{event.name}</h3>
+              <p className="text-sm text-gray-300 mb-4">{event.date}</p>
+              <p className="text-base text-gray-200 mb-4">{event.description}</p>
               <a
                 href={event.link}
                 target="_blank"
@@ -95,57 +111,37 @@ const Events = () => {
             </div>
           ))}
         </div>
+      </section>
 
-        {/* Mostrar la imagen ampliada con animación */}
-        {expandedImage && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
-            onClick={handleCloseImage}
-          >
-            <div
-              className="relative"
-              onClick={(e) => e.stopPropagation()} // Evita que el clic en la imagen cierre la vista previa
+      {/* Modal de imagen ampliada */}
+      {selectedImage && (
+        <div
+          className={`
+            fixed inset-0 z-50 flex items-center justify-center
+            bg-black bg-opacity-40 backdrop-blur-sm
+            transition-all duration-500 ease-in-out
+            ${isImageOpen ? "opacity-100 scale-100" : "opacity-0 scale-90"}
+          `}
+        >
+          <div className="relative bg-white/80 backdrop-blur-lg p-6 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-white/30 max-w-5xl w-full mx-4 transform transition-all duration-500 ease-in-out">
+            <button
+              onClick={closeImage}
+              className="absolute top-4 right-6 text-3xl text-black hover:text-red-500 font-bold"
             >
+              &times;
+            </button>
+            <div className="flex flex-col lg:flex-row gap-6 items-center">
               <img
-                src={expandedImage}
+                src={selectedImage}
                 alt="Imagen ampliada"
-                className="max-w-full max-h-full object-contain rounded-lg shadow-xl border-4 border-white transform transition-all duration-500 ease-in-out scale-110"
+                className="w-full lg:w-1/2 h-auto rounded-lg object-cover"
               />
-              {/* Botón de Cerrar */}
-              <button
-                onClick={handleCloseImage}
-                className="absolute top-4 right-4 text-white text-3xl font-bold bg-black bg-opacity-60 p-2 rounded-full hover:bg-opacity-70 transition"
-              >
-                X
-              </button>
             </div>
           </div>
-        )}
-      </section>
-
-      {/* Nueva sección "Encuéntranos" con el mapa */}
-      <section
-        id="encuentranos"
-        className="py-16 px-4 bg-gray-100 text-center"
-      >
-        <h2
-          className={`text-4xl font-semibold text-gray-800 mb-12 transform transition-all duration-700 ease-out ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          Encuéntranos
-        </h2>
-
-        <div
-          className={`flex flex-col lg:flex-row justify-between items-center gap-12 lg:gap-20 transition-all duration-700 ease-out ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
         </div>
-      </section>
+      )}
     </div>
   );
 };
 
 export default Events;
-
