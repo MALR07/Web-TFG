@@ -3,8 +3,7 @@ import '../../App.css';
 import { Routes, Route } from 'react-router';
 
 // Importar los componentes que ya tienes creados
-import Header from '../landing/Header';
-import Footer from '../landing/Footer';
+
 import AU from '../login/Login';  // Asegúrate de que la ruta de importación sea correcta
 import Register from '../routes/register';
 import ForgotPassword from '../routes/changecontra';

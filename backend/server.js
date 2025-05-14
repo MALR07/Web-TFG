@@ -8,6 +8,7 @@ const passport = require('./config/passport');
 const sequelize = require('./config/database');
 const routes = require('./routes'); // Importar rutas modularizadas
 const models = require('./models'); // Importar modelos desde el archivo index.js
+const path = require('path');
 
 // Cargar variables de entorno
 dotenv.config();
@@ -29,7 +30,9 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false }
 }));
-app.use('/uploads', express.static('uploads'));
+// En tu archivo principal, por ejemplo app.js o server.js
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
