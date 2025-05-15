@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../components/componetns/AuthContext.tsx';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const ClienteDashboard: React.FC = () => {
-  const { isAuthenticated, token, user } = useAuth(); 
+  const { isAuthenticated, token } = useAuth();
   const [reservas, setReservas] = useState<any[]>([]);
+  const [platos, setPlatos] = useState<any[]>([]);
   const [idPlato, setIdPlato] = useState<number>(0);
   const [cantidad, setCantidad] = useState<number>(1);
   const [fechaReserva, setFechaReserva] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [platoSeleccionado, setPlatoSeleccionado] = useState<any>(null);
+  const [expandedReserva, setExpandedReserva] = useState<number | null>(null); // Para controlar las reservas expandidas
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchReservas();
+      fetchPlatos();
     }
   }, [isAuthenticated, token]);
 
@@ -26,6 +32,17 @@ const ClienteDashboard: React.FC = () => {
       setReservas(res.data.reservas);
     } catch (err) {
       setError('Error al obtener las reservas');
+    }
+  };
+
+  const fetchPlatos = async () => {
+    try {
+      const res = await axios.get('http://localhost:3001/platos/available', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPlatos(res.data); // Aquí asignamos los platos a la variable de estado
+    } catch (err) {
+      setError('Error al obtener los platos');
     }
   };
 
@@ -42,16 +59,24 @@ const ClienteDashboard: React.FC = () => {
         { id_plato: idPlato, cantidad, fecha_reserva: fechaReserva },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccessMessage('Reserva creada exitosamente');
-      fetchReservas(); // Refrescar las reservas
+      toast.success('Reserva creada exitosamente');
+      setPlatos((prevPlatos) =>
+        prevPlatos.map((plato) =>
+          plato.id_plato === idPlato
+            ? { ...plato, cantidad_disponible: plato.cantidad_disponible - cantidad }
+            : plato
+        )
+      );
+      fetchReservas();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al crear la reserva');
+      toast.error('Error al crear la reserva');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCancelarReserva = async (reservaId: number) => {
+  const handleCancelarReserva = async (reservaId: number, idPlato: number, cantidad: number) => {
     if (!isAuthenticated) {
       setError('No estás autenticado');
       return;
@@ -62,31 +87,95 @@ const ClienteDashboard: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
         data: { reservaId },
       });
-      setSuccessMessage('Reserva cancelada exitosamente');
-      fetchReservas(); // Refrescar las reservas
+      toast.success('Reserva cancelada exitosamente');
+      setPlatos((prevPlatos) =>
+        prevPlatos.map((plato) =>
+          plato.id_plato === idPlato
+            ? { ...plato, cantidad_disponible: plato.cantidad_disponible + cantidad }
+            : plato
+        )
+      );
+      setReservas(prevReservas => prevReservas.filter(reserva => reserva.id_reserva !== reservaId));
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al cancelar la reserva');
+      toast.error('Error al cancelar la reserva');
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-lg p-8">
-        <h1 className="text-3xl font-semibold text-center text-blue-600 mb-8">Dashboard del Cliente</h1>
+  const handlePlatoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const platoId = Number(e.target.value);
+    setIdPlato(platoId);
+    const platoSeleccionado = platos.find((plato) => plato.id_plato === platoId);
+    setPlatoSeleccionado(platoSeleccionado);
+    setCantidad(1);
+  };
 
-        {/* Formulario para crear reserva */}
+  const toggleReservaDetails = (id: number) => {
+    setExpandedReserva(expandedReserva === id ? null : id);
+  };
+
+  const isValidDate = (date: string) => {
+    const selectedDate = new Date(date);
+    const day = selectedDate.getDay();
+    return day === 5 || day === 6 || day === 0; 
+  };
+
+  const isValidTime = (time: string) => {
+    const selectedTime = new Date(`1970-01-01T${time}:00`);
+    const startTime = new Date('1970-01-01T13:00:00'); 
+    const endTime = new Date('1970-01-01T16:35:00'); 
+    return selectedTime >= startTime && selectedTime <= endTime;
+  };
+
+  return (
+     <div
+      style={{
+        backgroundImage: "url('/fondoreserva.jpeg')", // La ruta de la imagen
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh', // Asegura que ocupe toda la pantalla
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-lg p-8 relative z-10">
+        <h1 className="text-3xl font-semibold text-center text-blue-600 mb-8">Realizar una reserva</h1>
+
+        {/* Mensaje adicional de la política de cancelación */}
+        <p className="text-sm text-gray-600 mb-8 text-center">
+          Si llegas más de 10 minutos tarde a tu reserva, esta será cancelada automáticamente. Por favor, sé puntual para asegurar tu lugar.
+        </p>
+
         <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Realizar una nueva reserva</h2>
           <div className="mb-4">
             <label className="block text-gray-600">Selecciona el plato</label>
-            <input
-              type="number"
+            <select
               value={idPlato}
-              onChange={(e) => setIdPlato(Number(e.target.value))}
+              onChange={handlePlatoChange}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm"
-              placeholder="ID del plato"
-            />
+            >
+              <option value={0}>Selecciona un plato</option>
+              {platos.map((plato) => (
+                <option key={plato.id_plato} value={plato.id_plato}>
+                  {plato.nombre} - {plato.cantidad_disponible} disponible(s)
+                </option>
+              ))}
+            </select>
           </div>
+          {platoSeleccionado && (
+            <div className="mb-4 text-center border p-4 shadow-sm rounded-lg">
+              <img
+                src={platoSeleccionado.imagen || 'default-image.jpg'}
+                alt={platoSeleccionado.nombre}
+                className="w-32 h-32 object-cover mx-auto mb-4"
+              />
+              <p className="font-semibold text-lg">{platoSeleccionado.nombre}</p>
+              <p>{platoSeleccionado.descripcion}</p>
+              <p className="mt-2 text-gray-600">Cantidad disponible: {platoSeleccionado.cantidad_disponible}</p>
+            </div>
+          )}
           <div className="mb-4">
             <label className="block text-gray-600">Cantidad</label>
             <input
@@ -95,6 +184,8 @@ const ClienteDashboard: React.FC = () => {
               onChange={(e) => setCantidad(Number(e.target.value))}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm"
               placeholder="Cantidad de platos"
+              min="1"
+              max={platoSeleccionado?.cantidad_disponible || 1}
             />
           </div>
           <div className="mb-4">
@@ -102,48 +193,78 @@ const ClienteDashboard: React.FC = () => {
             <input
               type="datetime-local"
               value={fechaReserva}
-              onChange={(e) => setFechaReserva(e.target.value)}
+              onChange={(e) => {
+                const selectedDate = e.target.value;
+                if (isValidDate(selectedDate)) {
+                  setFechaReserva(selectedDate);
+                } else {
+                  toast.error('Solo puedes seleccionar viernes, sábado o domingo.');
+                }
+              }}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm"
             />
+            <p className="text-sm text-gray-600 mt-2">
+              Solo se pueden seleccionar horarios de viernes, sábado o domingo entre 1:00 PM y 4:35 PM.
+            </p>
           </div>
           <button
             onClick={handleCrearReserva}
-            className={`w-full py-3 mt-4 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full py-3 mt-4 bg-yellow-600 text-white font-semibold rounded-lg shadow-lg hover:bg-yellow-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isLoading}
           >
             {isLoading ? 'Creando reserva...' : 'Crear Reserva'}
           </button>
         </div>
 
-        {/* Mostrar reservas existentes */}
         <div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Mis reservas</h2>
           {reservas.length === 0 ? (
             <p>No tienes reservas pendientes.</p>
           ) : (
             <ul className="space-y-4">
-              {reservas.map((reserva) => (
-                <li key={reserva.id_reserva} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition">
-                  <div className="flex flex-col">
-                    <span className="font-semibold">{reserva.Plato.nombre}</span>
-                    <span className="text-sm text-gray-600">{new Date(reserva.fecha_reserva).toLocaleString()}</span>
-                  </div>
-                  <button
-                    className="text-red-600 font-semibold"
-                    onClick={() => handleCancelarReserva(reserva.id_reserva)}
-                  >
-                    Cancelar
-                  </button>
-                </li>
-              ))}
+              {reservas.map((reserva) => {
+                const platoReserva = platos.find(plato => plato.id_plato === reserva.id_plato);
+                return (
+                  <li key={reserva.id_reserva} className="p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition">
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{platoReserva ? platoReserva.nombre : 'Plato no disponible'}</span>
+                        <span className="text-sm text-gray-600">{new Date(reserva.fecha_reserva).toLocaleString()}</span>
+                      </div>
+                      <button
+                        className="text-blue-600 font-semibold"
+                        onClick={() => toggleReservaDetails(reserva.id_reserva)}
+                      >
+                        {expandedReserva === reserva.id_reserva ? 'Ver menos' : 'Ver más'}
+                      </button>
+                    </div>
+                    {expandedReserva === reserva.id_reserva && platoReserva && (
+                      <div className="mt-4 transition-all ease-in-out duration-300">
+                        <img
+                          src={platoReserva.imagen || 'default-image.jpg'}
+                          alt={platoReserva.nombre}
+                          className="w-32 h-32 object-cover mb-4"
+                        />
+                        <p className="mt-2">{platoReserva.descripcion}</p>
+                        <p className="mt-2">Cantidad reservada: {reserva.cantidad}</p>
+                        <p className="mt-2 text-gray-600">Fecha de la reserva: {new Date(reserva.fecha_reserva).toLocaleString()}</p>
+                      </div>
+                    )}
+                    <button
+                      className="text-red-600 font-semibold mt-2 transform hover:scale-105 transition"
+                      onClick={() => handleCancelarReserva(reserva.id_reserva, reserva.id_plato, reserva.cantidad)}
+                    >
+                      Cancelar Reserva
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
-
-        {/* Mensajes de error o éxito */}
-        {error && <p className="mt-4 text-red-600">{error}</p>}
-        {successMessage && <p className="mt-4 text-green-600">{successMessage}</p>}
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

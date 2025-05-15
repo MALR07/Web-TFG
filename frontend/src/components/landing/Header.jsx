@@ -47,7 +47,7 @@ const Header = () => {
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           {/* Logo del Bar */}
-          <img src="/logo.png" alt="Logo del Bar" className="w-10 h-10 sm:w-12 sm:h-12" />
+          <img src="/logoBP.jpg" alt="Logo del Bar" className="w-10 h-10 sm:w-12 sm:h-12" />
         </div>
 
         {/* Enlaces del Landing (solo texto blanco con hover) */}

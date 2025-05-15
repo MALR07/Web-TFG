@@ -271,6 +271,7 @@ const PlatosManagement: React.FC = () => {
         <input
           type="file"
           onChange={handleImageChange}
+          placeholder="Seleccionar imagen"
           className="p-2 border border-gray-300 rounded"
         />
         <input

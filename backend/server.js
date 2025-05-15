@@ -31,7 +31,7 @@ app.use(session({
   cookie: { secure: false }
 }));
 // En tu archivo principal, por ejemplo app.js o server.js
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use(passport.initialize());
 app.use(passport.session());

@@ -32,10 +32,14 @@ const DishList = () => {
         {dishes.map((dish) => (
           <div key={dish.id} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
             <img
-              src={dish.imagen || 'default-image.jpg'} // Fallback si no hay imagen
-              alt={dish.nombre}
+               src={
+                    dish.imagen && dish.imagen.startsWith('http') 
+                   ? dish.imagen // Si es una URL externa, la usamos directamente
+                     : `http://localhost:3001${dish.imagen || '/default-image.jpg'}` // Si es una imagen local, la buscamos en el backend
+                }   
+                  alt={dish.nombre}
               className="w-full h-48 object-cover rounded-xl mb-4"
-            />
+                        />
             <h3 className="text-xl font-semibold text-center text-gray-800 mb-2">{dish.nombre}</h3>
             <p className="text-sm text-gray-500 text-center">{dish.descripcion}</p>
           </div>

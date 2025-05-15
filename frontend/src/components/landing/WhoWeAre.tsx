@@ -30,7 +30,7 @@ const WhoWeAre = () => {
     <div
       className={`relative bg-cover bg-center h-screen flex items-center justify-center text-white text-center transition-all duration-500 ease-in-out transform`}
       style={{
-        backgroundImage: "url('/path/to/your/image.jpg')", // Ruta de tu imagen
+        backgroundImage: "url('/fondoreserva.jpeg')", // Ruta de tu imagen
         backgroundSize: "cover",
         backgroundPosition: "center",
         opacity: 1 - scrollProgress, // La imagen se va difuminando a medida que se hace scroll

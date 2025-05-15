@@ -18,10 +18,11 @@ interface Comentario {
 const PlatosConComentarios = () => {
   const { isAuthenticated, token } = useAuth(); // Usamos useAuth para obtener el token
   const [platos, setPlatos] = useState<Plato[]>([]);
-  const [comentarios, setComentarios] = useState<Comentario[]>([]);
+  const [comentarios, setComentarios] = useState<Map<number, Comentario[]>>(new Map()); // Usamos un Map para manejar comentarios por plato
   const [comentarioTexto, setComentarioTexto] = useState<string>("");
 
   useEffect(() => {
+    // Obtención de los platos disponibles
     axios
       .get("http://localhost:3001/platos/available")
       .then((response) => setPlatos(response.data))
@@ -30,15 +31,19 @@ const PlatosConComentarios = () => {
       });
   }, []);
 
+  // Obtener comentarios de un plato específico
   const obtenerComentarios = (platoId: number) => {
     axios
       .get(`http://localhost:3001/comments/${platoId}`)
-      .then((response) => setComentarios(response.data))
+      .then((response) => {
+        setComentarios((prevComentarios) => new Map(prevComentarios).set(platoId, response.data));
+      })
       .catch((error) => {
         console.error("Error al obtener los comentarios:", error);
       });
   };
 
+  // Enviar comentario para un plato
   const enviarComentario = (platoId: number) => {
     if (!isAuthenticated) {
       toast.error("Necesitas estar logueado para comentar.");
@@ -88,7 +93,7 @@ const PlatosConComentarios = () => {
             <div className="mt-4">
               <h4 className="text-lg font-semibold">Comentarios</h4>
               <ul>
-                {comentarios.map((comentario) => (
+                {(comentarios.get(plato.id) || []).map((comentario) => (
                   <li key={comentario.id} className="mb-4">
                     <p>{comentario.texto}</p>
                   </li>
