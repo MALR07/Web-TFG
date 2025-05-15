@@ -1,8 +1,10 @@
 // src/components/CamareroDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../../components/componetns/AuthContext.tsx';  // Importamos el hook
 
 const CamareroReserva: React.FC = () => {
+  const { token, isAuthenticated, role } = useAuth();  // Usamos el contexto para obtener el token y el rol
   const [reservas, setReservas] = useState<any[]>([]);
   const [reservaId, setReservaId] = useState('');
   const [newCantidad, setNewCantidad] = useState(1);
@@ -11,29 +13,40 @@ const CamareroReserva: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Obtener todas las reservas al cargar el componente
+  // Verificamos si el usuario es camarero
   useEffect(() => {
-    const fetchReservas = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:3001/reservas/reservas', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setReservas(res.data.reservas);
-      } catch (err) {
-        setError('Error al obtener las reservas');
-      }
-    };
-    fetchReservas();
-  }, []);
+    if (!isAuthenticated) {
+      setError('No estás autenticado');
+    } else if (role !== 'camarero') {
+      setError('No tienes permisos para acceder a esta página');
+    } else {
+      fetchReservas();
+    }
+  }, [isAuthenticated, role]);  // Ejecutar la verificación solo cuando el estado de autenticación cambie
+
+  // Función para obtener todas las reservas
+  const fetchReservas = async () => {
+    try {
+      const res = await axios.get('http://localhost:3001/reservas/reservas', {
+        headers: {
+          Authorization: `Bearer ${token}`, // Usamos el token desde el contexto
+        },
+      });
+      setReservas(res.data.reservas);
+    } catch (err) {
+      setError('Error al obtener las reservas');
+    }
+  };
 
   // Modificar una reserva
   const handleModificarReserva = async () => {
+    if (!reservaId || !newCantidad || !newFechaReserva) {
+      setError('Por favor, complete todos los campos.');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
       await axios.put(
         'http://localhost:3001/reservas/gestionar',
         {
@@ -43,13 +56,14 @@ const CamareroReserva: React.FC = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // Usamos el token desde el contexto
           },
         }
       );
       setSuccessMessage('Reserva modificada exitosamente');
       setIsLoading(false);
       setError('');
+      fetchReservas(); // Actualizamos las reservas después de modificar
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al modificar la reserva');
       setIsLoading(false);
@@ -59,19 +73,29 @@ const CamareroReserva: React.FC = () => {
   // Cancelar una reserva
   const handleCancelarReserva = async () => {
     try {
-      const token = localStorage.getItem('token');
       await axios.delete('http://localhost:3001/reservas/cancelar', {
         data: { reservaId },
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Usamos el token desde el contexto
         },
       });
       setSuccessMessage('Reserva cancelada exitosamente');
       setError('');
+      fetchReservas(); // Actualizamos las reservas después de cancelar
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al cancelar la reserva');
       setSuccessMessage('');
     }
+  };
+
+  // Verificar si hay errores o mensajes de éxito
+  const renderMessages = () => {
+    return (
+      <>
+        {error && <p className="text-red-500 mt-4">{error}</p>}
+        {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
+      </>
+    );
   };
 
   return (
@@ -104,12 +128,10 @@ const CamareroReserva: React.FC = () => {
         <button
           onClick={handleModificarReserva}
           className="bg-blue-500 text-white px-4 py-2 rounded"
-          disabled={isLoading}
+          disabled={isLoading || error !== ''}
         >
           {isLoading ? 'Modificando reserva...' : 'Modificar Reserva'}
         </button>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
-        {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
       </div>
 
       {/* Cancelar reserva */}
@@ -128,8 +150,6 @@ const CamareroReserva: React.FC = () => {
         >
           Cancelar
         </button>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
-        {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
       </div>
 
       {/* Ver todas las reservas */}
@@ -141,12 +161,15 @@ const CamareroReserva: React.FC = () => {
           <ul>
             {reservas.map((reserva) => (
               <li key={reserva.id_reserva} className="mb-2">
-                <span>{reserva.Plato.nombre}</span> - {reserva.fecha_reserva}
+                <span>{reserva.Plato.nombre}</span> - {new Date(reserva.fecha_reserva).toLocaleString()}
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      {/* Mostrar mensajes de error o éxito */}
+      {renderMessages()}
     </div>
   );
 };

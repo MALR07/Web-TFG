@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../components/componetns/AuthContext.tsx';
 import 'react-toastify/dist/ReactToastify.css';
 
 const PlatosManagement: React.FC = () => {
@@ -20,56 +21,72 @@ const PlatosManagement: React.FC = () => {
   const [platoToDelete, setPlatoToDelete] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
 
   const baseURL = 'http://localhost:3001/platos';
   const navigate = useNavigate();
+  const { token, role } = useAuth();
 
-  // Verificar token y rol al cargar el componente
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('role'); // Aquí se asume que el rol está guardado en localStorage
-    if (token && userRole) {
-      setRole(userRole); // Si el token y el rol existen, asignar el rol
-    } else {
+    if (!token || !role) {
       toast.error('No estás autenticado');
-      navigate('/login'); // Si no hay token, redirigir al login
+      navigate('/login');
+      return;
     }
 
-    const fetchPlatos = async () => {
-      try {
-        const response = await axios.get(`${baseURL}/available`);
-        setPlatos(response.data);
-      } catch (error) {
-        setErrorMessage('Error al obtener los platos');
-        console.error('Error al obtener los platos', error);
-      }
-    };
+    if (role !== 'camarero') {
+      toast.error('No tienes permisos para acceder a esta página');
+      navigate('/');
+      return;
+    }
 
     fetchPlatos();
-  }, [navigate]);
+  }, [token, role, navigate]);
 
-  // Filtro por nombre
+  const fetchPlatos = async () => {
+    try {
+      const response = await axios.get(`${baseURL}/available`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPlatos(response.data);
+    } catch (error) {
+      setErrorMessage('Error al obtener los platos');
+      console.error(error);
+    }
+  };
+
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNombreFiltro(e.target.value);
   };
 
-  // Manejo de eliminación de un plato
   const handleDelete = async () => {
-    if (platoToDelete !== null) {
+    console.log('Plato a eliminar con ID:', platoToDelete); // Verifica que platoToDelete es el id_plato
+
+    if (platoToDelete != null) {
       try {
-        await axios.delete(`${baseURL}/delete/${platoToDelete}`);
-        setPlatos(platos.filter((plato) => plato.id !== platoToDelete));
-        setShowConfirmDelete(false);
-        setSuccessMessage('Plato eliminado exitosamente');
+        const response = await axios.delete(`${baseURL}/delete/${platoToDelete}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 200) {
+          setPlatos((prevPlatos) => prevPlatos.filter((plato) => plato.id_plato !== platoToDelete)); // Filtramos por id_plato
+          setShowConfirmDelete(false);
+          setSuccessMessage('Plato eliminado exitosamente');
+        } else {
+          setErrorMessage('No se pudo eliminar el plato');
+        }
       } catch (error) {
         setErrorMessage('Error al eliminar el plato');
-        console.error('Error al eliminar el plato', error);
+        console.error(error);
       }
+    } else {
+      setErrorMessage('ID del plato no encontrado');
     }
   };
 
-  // Manejo de la edición de un plato
   const handleEditClick = (plato: any) => {
     setFormData({
       nombre: plato.nombre,
@@ -78,11 +95,10 @@ const PlatosManagement: React.FC = () => {
       imagen: null,
       imagenUrl: plato.imagen || '',
     });
-    setEditPlatoId(plato.id);
+    setEditPlatoId(plato.id_plato);  // Cambiado a plato.id_plato
     setEditMode(true);
   };
 
-  // Cambio en el formulario
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -91,7 +107,6 @@ const PlatosManagement: React.FC = () => {
     }));
   };
 
-  // Cambio de la imagen
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -103,7 +118,6 @@ const PlatosManagement: React.FC = () => {
     }
   };
 
-  // Cambio en la URL de la imagen
   const handleImagenUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -112,7 +126,6 @@ const PlatosManagement: React.FC = () => {
     }));
   };
 
-  // Enviar el formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { nombre, descripcion, cantidadDisponible, imagen, imagenUrl } = formData;
@@ -129,25 +142,28 @@ const PlatosManagement: React.FC = () => {
     }
 
     try {
+      let response;
       if (editMode && editPlatoId) {
-        await axios.put(`${baseURL}/update/${editPlatoId}`, form, {
+        response = await axios.put(`${baseURL}/update/${editPlatoId}`, form, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
         });
         setSuccessMessage('Plato actualizado exitosamente');
+        setPlatos((prevPlatos) =>
+          prevPlatos.map((plato) => (plato.id_plato === editPlatoId ? response.data.plato : plato))  // Cambiado a id_plato
+        );
       } else {
-        await axios.post(`${baseURL}/add`, form, {
+        response = await axios.post(`${baseURL}/add`, form, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
         });
         setSuccessMessage('Plato añadido exitosamente');
+        setPlatos((prevPlatos) => [...prevPlatos, response.data.plato]);
       }
-
-      // Refrescar la lista de platos
-      const response = await axios.get(`${baseURL}/available`);
-      setPlatos(response.data);
 
       setFormData({
         nombre: '',
@@ -158,115 +174,116 @@ const PlatosManagement: React.FC = () => {
       });
       setEditMode(false);
       setEditPlatoId(null);
+      fetchPlatos();
+
     } catch (error) {
       setErrorMessage('Error al guardar el plato');
-      console.error('Error al guardar el plato', error);
+      console.error(error);
     }
   };
 
   return (
-    <div className="relative">
-      <div
-        className="absolute inset-0 bg-cover bg-center blur-sm z-[-1]"
-        style={{ backgroundImage: 'url("https://via.placeholder.com/1500")' }}
-      ></div>
+    <div className="container mx-auto py-10 px-4 max-w-5xl">
+      <h2 className="text-center text-3xl mb-6">Gestión de Platos</h2>
 
-      <div className="container mx-auto py-10 px-4 z-10 relative max-w-5xl">
-        <h2 className="text-center text-white mb-6 text-3xl">Gestión de Platos</h2>
+      <input
+        type="text"
+        placeholder="Filtrar por nombre"
+        value={nombreFiltro}
+        onChange={handleFilterChange}
+        className="w-full p-3 mb-6 rounded-md border border-gray-300"
+      />
 
+      {errorMessage && <div className="bg-red-500 text-white p-3 rounded mb-4">{errorMessage}</div>}
+      {successMessage && <div className="bg-green-500 text-white p-3 rounded mb-4">{successMessage}</div>}
+
+      <table className="w-full table-auto mb-6">
+        <thead>
+          <tr className="bg-gray-800 text-white">
+            <th className="py-2 px-4">Nombre</th>
+            <th className="py-2 px-4">Descripción</th>
+            <th className="py-2 px-4">Cantidad</th>
+            <th className="py-2 px-4">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {platos
+            .filter((plato) =>
+              plato.nombre.toLowerCase().includes(nombreFiltro.toLowerCase())
+            )
+            .map((plato) => (
+              <tr key={plato.id_plato} className="border-b">  {/* Cambiado de plato.id a plato.id_plato */}
+                <td className="py-2 px-4">{plato.nombre}</td>
+                <td className="py-2 px-4">{plato.descripcion}</td>
+                <td className="py-2 px-4">{plato.cantidad_disponible}</td>
+                <td className="py-2 px-4 flex gap-2">
+                  <button onClick={() => handleEditClick(plato)} className="bg-yellow-500 text-white px-3 py-1 rounded">
+                    Editar
+                  </button>
+                  <button onClick={() => {
+                    console.log('Plato seleccionado para eliminar:', plato.id_plato);  // Log adicional para verificar el plato
+                    setPlatoToDelete(plato.id_plato);  // Cambiado a plato.id_plato
+                    setShowConfirmDelete(true);
+                  }} className="bg-red-500 text-white px-3 py-1 rounded">
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+
+      {showConfirmDelete && (
+        <div className="bg-yellow-200 p-4 rounded mb-4 text-center">
+          <p>¿Seguro que quieres eliminar este plato?</p>
+          <div className="flex justify-center gap-4 mt-2">
+            <button onClick={handleDelete} className="bg-red-600 text-white px-4 py-2 rounded">Confirmar</button>
+            <button onClick={() => setShowConfirmDelete(false)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="grid gap-4 bg-gray-100 p-6 rounded shadow">
         <input
           type="text"
-          placeholder="Filtrar por nombre"
-          value={nombreFiltro}
-          onChange={handleFilterChange}
-          className="w-full p-3 mb-6 rounded-md border border-gray-300 focus:outline-none"
+          name="nombre"
+          value={formData.nombre}
+          onChange={handleInputChange}
+          placeholder="Nombre"
+          className="p-2 border border-gray-300 rounded"
         />
-
-        {errorMessage && (
-          <div className="alert bg-red-500 text-white p-4 rounded-lg mt-4 text-center">
-            {errorMessage}
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="alert bg-green-500 text-white p-4 rounded-lg mt-4 text-center">
-            {successMessage}
-          </div>
-        )}
-
-        {role === 'camarero' && (
-          <div className="w-full overflow-x-auto">
-            <table className="min-w-full table-auto bg-white shadow-md rounded-lg overflow-hidden">
-              <thead>
-                <tr className="bg-gray-800 text-white text-sm md:text-base">
-                  <th className="py-3 px-2 md:px-4">Nombre</th>
-                  <th className="py-3 px-2 md:px-4">Descripción</th>
-                  <th className="py-3 px-2 md:px-4">Cantidad Disponible</th>
-                  <th className="py-3 px-2 md:px-4">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {platos
-                  .filter((plato) =>
-                    plato.nombre.toLowerCase().includes(nombreFiltro.toLowerCase())
-                  )
-                  .map((plato) => (
-                    <tr key={plato.id} className="text-sm md:text-base">
-                      <td className="py-2 px-2 md:px-4 border-b">{plato.nombre}</td>
-                      <td className="py-2 px-2 md:px-4 border-b">{plato.descripcion}</td>
-                      <td className="py-2 px-2 md:px-4 border-b">{plato.cantidad_disponible}</td>
-                      <td className="py-2 px-2 md:px-4 border-b flex flex-col md:flex-row items-start md:items-center gap-2">
-                        <button
-                          className="bg-yellow-500 text-white py-1 px-4 rounded-lg hover:bg-yellow-600"
-                          onClick={() => handleEditClick(plato)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          className="bg-red-500 text-white py-1 px-4 rounded-lg hover:bg-red-600"
-                          onClick={() => {
-                            setPlatoToDelete(plato.id);
-                            setShowConfirmDelete(true);
-                          }}
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {showConfirmDelete && (
-          <div className="alert bg-yellow-500 text-white p-4 rounded-lg mt-4 text-center">
-            <p className="mb-2">¿Seguro que quieres eliminar este plato?</p>
-            <div className="flex flex-col sm:flex-row justify-center gap-2">
-              <button
-                className="bg-red-600 text-white py-2 px-4 rounded-lg"
-                onClick={handleDelete}
-              >
-                Confirmar
-              </button>
-              <button
-                className="bg-gray-600 text-white py-2 px-4 rounded-lg"
-                onClick={() => setShowConfirmDelete(false)}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
-
-        {role === 'camarero' && (
-          <h3 className="text-white text-xl mt-8">{editMode ? 'Editar Plato' : 'Añadir Plato'}</h3>
-        )}
-
-        <form onSubmit={handleSubmit} className="mt-4 grid gap-4">
-          {/* Formulario */}
-        </form>
-      </div>
+        <input
+          type="text"
+          name="descripcion"
+          value={formData.descripcion}
+          onChange={handleInputChange}
+          placeholder="Descripción"
+          className="p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="number"
+          name="cantidadDisponible"
+          value={formData.cantidadDisponible}
+          onChange={handleInputChange}
+          placeholder="Cantidad Disponible"
+          className="p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="file"
+          onChange={handleImageChange}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="text"
+          placeholder="URL de imagen (opcional)"
+          value={formData.imagenUrl}
+          onChange={handleImagenUrlChange}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          {editMode ? 'Actualizar Plato' : 'Agregar Plato'}
+        </button>
+      </form>
     </div>
   );
 };

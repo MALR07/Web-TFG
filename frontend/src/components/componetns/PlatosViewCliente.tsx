@@ -16,7 +16,7 @@ interface Comentario {
 }
 
 const PlatosConComentarios = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth(); // Usamos useAuth para obtener el token
   const [platos, setPlatos] = useState<Plato[]>([]);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [comentarioTexto, setComentarioTexto] = useState<string>("");
@@ -45,20 +45,25 @@ const PlatosConComentarios = () => {
       return;
     }
 
+    if (!comentarioTexto) {
+      toast.error("Por favor, escribe un comentario.");
+      return;
+    }
+
     axios
       .post(
         `http://localhost:3001/comments/${platoId}`,
         { texto: comentarioTexto },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`, // Usamos el token desde el contexto
           },
         }
       )
       .then(() => {
         toast.success("Comentario enviado con éxito");
         setComentarioTexto("");
-        obtenerComentarios(platoId);
+        obtenerComentarios(platoId); // Recargamos los comentarios después de enviar uno nuevo
       })
       .catch((error) => {
         console.error("Error al enviar el comentario:", error);
