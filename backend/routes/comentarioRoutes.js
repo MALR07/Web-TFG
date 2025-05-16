@@ -11,7 +11,7 @@ router.get('/', comentarioController.getAllComentarios);
 
 // Ruta para crear un nuevo comentario
 // Permite a los usuarios enviar un comentario con puntuación y fecha.
-router.post('/', verifyToken,checkRole('cliente'), comentarioController.createComentario);
+router.post('/crear', verifyToken,checkRole('cliente'), comentarioController.createComentario);
 
 // Ruta para que los camareros puedan moderar comentarios
 // Permite a los camareros actualizar o eliminar comentarios.

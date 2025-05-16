@@ -11,7 +11,7 @@ const Videos = () => {
             <iframe
               width="100%"
               height="315"
-              src="https://www.youtube.com/embed/videoID2024" // Reemplaza con el ID del video de YouTube
+              src="https://www.youtube.com/watch?v=qODkQBjvZgk" // Reemplaza con el ID del video de YouTube
               title="Verbena 2024"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -22,7 +22,7 @@ const Videos = () => {
           {/* Botón de ampliar */}
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
             <a
-              href="https://www.youtube.com/watch?v=videoID2024" // Enlace directo a YouTube para ver el video completo
+              href="https://www.youtube.com/watch?v=qODkQBjvZgk" // Enlace directo a YouTube para ver el video completo
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -37,7 +37,7 @@ const Videos = () => {
             <iframe
               width="100%"
               height="315"
-              src="https://www.youtube.com/embed/videoID2023" // Reemplaza con el ID del video de YouTube
+              src="https://www.youtube.com/watch?v=YsUkRntVH8M" // Reemplaza con el ID del video de YouTube
               title="Verbena 2023"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -48,7 +48,7 @@ const Videos = () => {
           {/* Botón de ampliar */}
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
             <a
-              href="https://www.youtube.com/watch?v=videoID2023" // Enlace directo a YouTube para ver el video completo
+              href="https://www.youtube.com/watch?v=YsUkRntVH8M" // Enlace directo a YouTube para ver el video completo
               target="_blank"
               rel="noopener noreferrer"
             >

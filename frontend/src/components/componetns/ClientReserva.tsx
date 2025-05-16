@@ -4,7 +4,6 @@ import { useAuth } from '../../components/componetns/AuthContext.tsx';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 const ClienteDashboard: React.FC = () => {
   const { isAuthenticated, token } = useAuth();
   const [reservas, setReservas] = useState<any[]>([]);
@@ -29,7 +28,9 @@ const ClienteDashboard: React.FC = () => {
       const res = await axios.get('http://localhost:3001/reservas/reservas', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setReservas(res.data.reservas);
+      // Filtramos solo las reservas con estado 'confirmada'
+      const reservasConfirmadas = res.data.reservas.filter((r: any) => r.estado === 'confirmada');
+      setReservas(reservasConfirmadas);
     } catch (err) {
       setError('Error al obtener las reservas');
     }
@@ -40,7 +41,7 @@ const ClienteDashboard: React.FC = () => {
       const res = await axios.get('http://localhost:3001/platos/available', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setPlatos(res.data); // Aquí asignamos los platos a la variable de estado
+      setPlatos(res.data);
     } catch (err) {
       setError('Error al obtener los platos');
     }
@@ -130,10 +131,10 @@ const ClienteDashboard: React.FC = () => {
   return (
      <div
       style={{
-        backgroundImage: "url('/fondoreserva.jpeg')", // La ruta de la imagen
+        backgroundImage: "url('/fondoreserva.jpeg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        minHeight: '100vh', // Asegura que ocupe toda la pantalla
+        minHeight: '100vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -142,7 +143,6 @@ const ClienteDashboard: React.FC = () => {
       <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-lg p-8 relative z-10">
         <h1 className="text-3xl font-semibold text-center text-blue-600 mb-8">Realizar una reserva</h1>
 
-        {/* Mensaje adicional de la política de cancelación */}
         <p className="text-sm text-gray-600 mb-8 text-center">
           Si llegas más de 10 minutos tarde a tu reserva, esta será cancelada automáticamente. Por favor, sé puntual para asegurar tu lugar.
         </p>
@@ -217,9 +217,9 @@ const ClienteDashboard: React.FC = () => {
         </div>
 
         <div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Mis reservas</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Mis reservas confirmadas</h2>
           {reservas.length === 0 ? (
-            <p>No tienes reservas pendientes.</p>
+            <p>No tienes reservas confirmadas.</p>
           ) : (
             <ul className="space-y-4">
               {reservas.map((reserva) => {
@@ -230,6 +230,9 @@ const ClienteDashboard: React.FC = () => {
                       <div className="flex flex-col">
                         <span className="font-semibold">{platoReserva ? platoReserva.nombre : 'Plato no disponible'}</span>
                         <span className="text-sm text-gray-600">{new Date(reserva.fecha_reserva).toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          Estado: <strong>{reserva.estado}</strong>
+                        </span>
                       </div>
                       <button
                         className="text-blue-600 font-semibold"

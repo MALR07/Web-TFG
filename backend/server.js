@@ -10,6 +10,15 @@ const routes = require('./routes'); // Importar rutas modularizadas
 const models = require('./models'); // Importar modelos desde el archivo index.js
 const path = require('path');
 
+
+const cron = require('node-cron');
+const gestionarReservasExpiradas = require('./cron/cronReservas');
+
+// Ejecutar cada 5 minutos
+cron.schedule('*/5 * * * *', async () => {
+  await gestionarReservasExpiradas();
+});
+
 // Cargar variables de entorno
 dotenv.config();
 
@@ -55,6 +64,18 @@ sequelize.authenticate()
 
 // Usar rutas modularizadas
 app.use('/', routes);
+
+
+// Ejecutar cron job para expirar reservas cada 5 minutos
+cron.schedule('*/5 * * * *', async () => {
+  console.log('Ejecutando tarea cron para expirar reservas...');
+  try {
+    await checkAndExpireReservations();
+  } catch (error) {
+    console.error('Error en cron job de reservas expiradas:', error);
+  }
+});
+
 
 // Iniciar el servidor
 app.listen(PORT, () => {
