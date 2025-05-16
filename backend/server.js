@@ -56,7 +56,7 @@ sequelize.authenticate()
   .then(() => {
     console.log('Conexión a la base de datos exitosa!');
     // Sincronizar modelos
-    models.sequelize.sync({ alter: false }) // Cambiar a { force: true } para eliminar y recrear tablas
+    models.sequelize.sync({ alter: true }) // Cambiar a { force: true } para eliminar y recrear tablas
       .then(() => console.log('Las tablas están sincronizadas correctamente.'))
       .catch((error) => console.error('Error al sincronizar las tablas:', error));
   })

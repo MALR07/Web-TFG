@@ -40,10 +40,21 @@ const Register = () => {
   };
 
   return (
-    <section id="register" className="py-16 px-4 bg-gray-100 text-center">
-      <h2 className="text-4xl font-semibold text-gray-800 mb-6">Registrarse</h2>
+    <section
+      id="register"
+      className="min-h-screen flex justify-center items-center bg-gray-100 py-16 px-4 relative"
+    >
+      {/* Fondo con imagen y desenfoque */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70 backdrop-blur-md"
+        style={{
+          backgroundImage: "url('/fondoreserva.jpeg')", // Cambia esta URL por la imagen que quieras usar
+        }}
+      ></div>
 
-      <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg relative z-10">
+        <h2 className="text-4xl font-semibold text-gray-800 mb-6 text-center">Registrarse</h2>
+
         <form onSubmit={handleSubmit}>
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
           {success && <p className="text-green-600 text-sm mb-2">{success}</p>}

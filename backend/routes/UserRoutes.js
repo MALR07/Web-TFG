@@ -1,7 +1,7 @@
 // backend/routes/usuarios.js
 const express = require('express');
 const router = express.Router();
-const usuariosController = require('../controllers/usuariosController');
+const usuariosController = require('../controllers/userController');
 const verifyToken = require('../middleware/verifyToken');
 const checkRole = require('../middleware/checkRole');
 

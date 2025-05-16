@@ -4,7 +4,7 @@ const authRoutes = require('./routes/authRoutes');
 const comentarioRoutes = require('./routes/comentarioRoutes');
 const platosRoutes = require('./routes/platosRoutes');
 const reservasRoutes = require('./routes/reservasRoutes');
-const usuariosRoutes = require('./routes/usuariosRoutes');
+const usuariosRoutes = require('./routes/UserRoutes');
 
 
 
@@ -13,5 +13,5 @@ router.use('/auth', authRoutes);
 router.use('/comentarios', comentarioRoutes);
 router.use('/platos', platosRoutes);
 router.use('/reservas', reservasRoutes);
-router.use('/usuarios', require('./routes/usuariosRoutes'));
+router.use('/usuarios', usuariosRoutes);
 module.exports = router;

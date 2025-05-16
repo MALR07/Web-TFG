@@ -4,15 +4,15 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-800 text-white py-6 mt-12 w-full">
-      <div className="container mx-auto max-w-screen-lg flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 md:px-10">
+    <footer className="bg-gray-800 text-white py-6 w-full">
+      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 md:px-10">
         {/* Izquierda: Logo y Facebook */}
         <div className="flex items-center space-x-4 mb-4 sm:mb-0">
           {/* Logo del Bar */}
           <img
             src="/logoBP.jpg"
             alt="Logo del Bar Pepin"
-            className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+            className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-3xl"
           />
           {/* Facebook */}
           <a
@@ -30,7 +30,7 @@ const Footer = () => {
         </div>
 
         {/* Derecha: Texto */}
-        <div className="text-right text-sm md:text-base text-gray-400 max-w-xs sm:max-w-md">
+        <div className="text-center sm:text-right text-sm md:text-base text-gray-400">
           <p>
             &copy; {currentYear}{' '}
             <span className="font-semibold text-white">Bar Pepin</span>. Todos los derechos reservados.

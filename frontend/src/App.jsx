@@ -18,16 +18,17 @@ import Comment from './components/landing/Comment';
 import Footer from './components/landing/Footer';
 
 // Rutas de Autenticación
-import Login from './components/routes/login'; 
-import Register from './components/routes/register';
-import ForgotPassword from './components/routes/changecontra';
-
+import Login from './components/login/Login'; 
+import Register from './components/login/register';
+import ForgotPassword from './components/login/ForgotPassword.tsx';
+import ResetPassword from './components/login/ResetPassword.tsx';
 // Rutas protegidas
 import PrivateRoute from './components/componetns/PrivateRoute';
 
 // Componentes para camarero
 import ManageReservations from './components/componetns/CamareroReserva';  
 import ManageDishes from './components/componetns/PlatosManagement';  
+import ManageUsers from './components/componetns/ManageUsers';  // Gestión de usuarios
 
 // Componente de cliente
 import ReservationPage from './components/componetns/ClientReserva';  // Reserva
@@ -84,12 +85,14 @@ const App = () => {
           <Route element={<PrivateRoute requiredRole="camarero" />}>
             <Route path="/manage-reservations" element={<ManageReservations />} />
             <Route path="/manage-dishes" element={<ManageDishes />} />
+            <Route path="/manage-users" element={<ManageUsers />} />  {/* Gestión de usuarios */}
           </Route>
 
           {/* Rutas públicas */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Ruta de acceso denegado */}
           <Route path="/access-denied" element={<AccessDenied />} />

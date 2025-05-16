@@ -89,111 +89,116 @@ const Usuarios: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h1 className="text-2xl font-semibold mb-6 text-center">Gestión de Usuarios</h1>
-      
-      {/* Formulario para crear/actualizar un usuario */}
-      <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-        <h2 className="text-xl font-medium">{editUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h2>
-
-        <div className="space-y-2">
-          <label htmlFor="nombre" className="block">Nombre</label>
-          <input
-            id="nombre"
-            type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="email" className="block">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="contrasena" className="block">Contraseña</label>
-          <input
-            id="contrasena"
-            type="password"
-            value={contrasena}
-            onChange={(e) => setContrasena(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="rol" className="block">Rol</label>
-          <select
-            id="rol"
-            value={rol}
-            onChange={(e) => setRol(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          >
-            <option value="cliente">Cliente</option>
-            <option value="camarero">Camarero</option>
-          </select>
-        </div>
-
-        {error && <p className="text-red-500">{error}</p>}
-        {successMessage && <p className="text-green-500">{successMessage}</p>}
+    <div className="min-h-screen bg-gray-100"> {/* Fondo gris claro para la página */}
+      <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg min-h-screen">
+        <h1 className="text-2xl font-semibold mb-6 text-center">Gestión de Usuarios</h1>
         
-        <button
-          type="submit"
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400"
-          disabled={loading}
-        >
-          {loading ? 'Guardando...' : 'Guardar'}
-        </button>
-      </form>
+        {/* Formulario para crear/actualizar un usuario */}
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          <h2 className="text-xl font-medium">{editUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h2>
 
-      {/* Tabla de usuarios */}
-      <div className="overflow-x-auto">
-        <h2 className="text-xl font-medium mb-4">Lista de Usuarios</h2>
-        <table className="min-w-full table-auto">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 text-left">Nombre</th>
-              <th className="px-4 py-2 text-left">Email</th>
-              <th className="px-4 py-2 text-left">Rol</th>
-              <th className="px-4 py-2 text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((usuario) => (
-              <tr key={usuario.id_user} className="border-t">
-                <td className="px-4 py-2">{usuario.nombre}</td>
-                <td className="px-4 py-2">{usuario.email}</td>
-                <td className="px-4 py-2">{usuario.rol}</td>
-                <td className="px-4 py-2 flex space-x-4">
-                  <button
-                    onClick={() => handleEdit(usuario)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(usuario.id_user)}
-                    className="text-red-500 hover:underline"
-                  >
-                    Eliminar
-                  </button>
-                </td>
+          {/* Cuadrícula para el formulario */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="nombre" className="block">Nombre</label>
+              <input
+                id="nombre"
+                type="text"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="block">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="contrasena" className="block">Contraseña</label>
+              <input
+                id="contrasena"
+                type="password"
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="rol" className="block">Rol</label>
+              <select
+                id="rol"
+                value={rol}
+                onChange={(e) => setRol(e.target.value)}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="cliente">Cliente</option>
+                <option value="camarero">Camarero</option>
+              </select>
+            </div>
+          </div>
+
+          {error && <p className="text-red-500">{error}</p>}
+          {successMessage && <p className="text-green-500">{successMessage}</p>}
+          
+          <button
+            type="submit"
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+            disabled={loading}
+          >
+            {loading ? 'Guardando...' : 'Guardar'}
+          </button>
+        </form>
+
+        {/* Tabla de usuarios */}
+        <div className="overflow-x-auto">
+          <h2 className="text-xl font-medium mb-4">Lista de Usuarios</h2>
+          <table className="min-w-full table-auto">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 text-left">Nombre</th>
+                <th className="px-4 py-2 text-left">Email</th>
+                <th className="px-4 py-2 text-left">Rol</th>
+                <th className="px-4 py-2 text-left">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {usuarios.map((usuario) => (
+                <tr key={usuario.id_user} className="border-t">
+                  <td className="px-4 py-2">{usuario.nombre}</td>
+                  <td className="px-4 py-2">{usuario.email}</td>
+                  <td className="px-4 py-2">{usuario.rol}</td>
+                  <td className="px-4 py-2 flex space-x-4">
+                    <button
+                      onClick={() => handleEdit(usuario)}
+                      className="text-blue-500 hover:underline"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(usuario.id_user)}
+                      className="text-red-500 hover:underline"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -118,18 +118,36 @@ const ClienteDashboard: React.FC = () => {
   const isValidDate = (date: string) => {
     const selectedDate = new Date(date);
     const day = selectedDate.getDay();
-    return day === 5 || day === 6 || day === 0; 
+    return day === 5 || day === 6 || day === 0;  // Viernes, sábado y domingo
   };
 
   const isValidTime = (time: string) => {
     const selectedTime = new Date(`1970-01-01T${time}:00`);
-    const startTime = new Date('1970-01-01T13:00:00'); 
-    const endTime = new Date('1970-01-01T16:35:00'); 
+    const startTime = new Date('1970-01-01T14:00:00');  // 14:00 (2:00 PM)
+    const endTime = new Date('1970-01-01T17:00:00');  // 17:00 (5:00 PM)
     return selectedTime >= startTime && selectedTime <= endTime;
   };
 
+  const handleFechaReservaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+
+    if (isValidDate(selectedDate) && isValidTime(selectedDate.slice(11, 16))) {
+      // Convertir la fecha a la zona horaria +02:00 (sumar 2 horas)
+      const dateWithOffset = new Date(new Date(selectedDate).getTime() + 2 * 60 * 60 * 1000); // +2 horas
+      setFechaReserva(dateWithOffset.toISOString().slice(0, 19)); // Guardar en formato 'YYYY-MM-DDTHH:MM:SS'
+    } else {
+      toast.error('Solo puedes seleccionar viernes, sábado o domingo entre 2:00 PM y 5:00 PM.');
+    }
+  };
+
+  const formatFechaConDescuento = (fecha: string) => {
+    const reservaDate = new Date(fecha);
+    reservaDate.setHours(reservaDate.getHours() - 2); // Restamos 2 horas
+    return reservaDate.toLocaleString(); // Devolvemos la fecha en formato legible
+  };
+
   return (
-     <div
+    <div
       style={{
         backgroundImage: "url('/fondoreserva.jpeg')",
         backgroundSize: 'cover',
@@ -193,18 +211,11 @@ const ClienteDashboard: React.FC = () => {
             <input
               type="datetime-local"
               value={fechaReserva}
-              onChange={(e) => {
-                const selectedDate = e.target.value;
-                if (isValidDate(selectedDate)) {
-                  setFechaReserva(selectedDate);
-                } else {
-                  toast.error('Solo puedes seleccionar viernes, sábado o domingo.');
-                }
-              }}
+              onChange={handleFechaReservaChange}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm"
             />
             <p className="text-sm text-gray-600 mt-2">
-              Solo se pueden seleccionar horarios de viernes, sábado o domingo entre 1:00 PM y 4:35 PM.
+              Solo se pueden seleccionar horarios de viernes, sábado o domingo entre 2:00 PM y 5:00 PM.
             </p>
           </div>
           <button
@@ -229,7 +240,7 @@ const ClienteDashboard: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex flex-col">
                         <span className="font-semibold">{platoReserva ? platoReserva.nombre : 'Plato no disponible'}</span>
-                        <span className="text-sm text-gray-600">{new Date(reserva.fecha_reserva).toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">{formatFechaConDescuento(reserva.fecha_reserva)}</span>
                         <span className="text-sm text-gray-600">
                           Estado: <strong>{reserva.estado}</strong>
                         </span>
@@ -250,7 +261,7 @@ const ClienteDashboard: React.FC = () => {
                         />
                         <p className="mt-2">{platoReserva.descripcion}</p>
                         <p className="mt-2">Cantidad reservada: {reserva.cantidad}</p>
-                        <p className="mt-2 text-gray-600">Fecha de la reserva: {new Date(reserva.fecha_reserva).toLocaleString()}</p>
+                        <p className="mt-2 text-gray-600">Fecha de la reserva: {formatFechaConDescuento(reserva.fecha_reserva)}</p>
                       </div>
                     )}
                     <button

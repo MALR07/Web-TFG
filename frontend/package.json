@@ -15,6 +15,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.11.0",
     "jwt-decode": "^4.0.0",
+    "moment-timezone": "^0.5.48",
     "react": "^19.1.0",
     "react-datepicker": "^8.3.0",
     "react-dom": "^19.1.0",

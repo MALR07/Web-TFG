@@ -15,7 +15,7 @@ const sendPasswordRecoveryEmail = (email, token) => {
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Recuperación de contraseña',
-    text: `Haz clic en el siguiente enlace para recuperar tu contraseña: ${process.env.BASE_URL}/reset-password?token=${token}`,
+    text: `Haz clic en el siguiente enlace para recuperar tu contraseña: http://localhost:5173/reset-password?token=${token}`,
   };
 
   return transporter.sendMail(mailOptions);

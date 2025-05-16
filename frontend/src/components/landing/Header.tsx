@@ -81,7 +81,7 @@ const Header: React.FC = () => {
           className="text-2xl font-bold cursor-pointer mb-2 sm:mb-0"
           onClick={() => navigate('/')}
         >
-          <img src="/logoBP.jpg" alt="Logo del Bar" className="w-10 h-10 sm:w-12 sm:h-12" />
+          <img src="/logoBP.jpg" alt="Logo del Bar" className="w-10 h-10 sm:w-12 sm:h-12 rounded-3xl" />
         </div>
 
         <nav className="flex-grow w-full sm:w-auto flex justify-center mt-2 sm:mt-0">

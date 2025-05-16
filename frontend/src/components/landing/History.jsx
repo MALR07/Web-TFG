@@ -140,9 +140,9 @@ const History = () => {
           <div className="w-full backdrop-blur-md bg-black bg-opacity-40 p-10 rounded-xl shadow-xl flex flex-col lg:flex-row items-center justify-between space-y-10 lg:space-y-0 lg:space-x-10">
             {/* Dirección */}
             <div className="text-white w-full lg:w-1/2 text-center lg:text-left">
-              <p className="text-2xl mb-4">Visítanos en nuestra ubicación:</p>
+              <p className="text-2xl mb-4">Visítanos:</p>
               <p className="text-xl font-medium mb-4">
-                1600 Folsom St, San Francisco, CA 94107, USA
+                Avenida del Pantano 87, Moron de la Frontera, Sevilla 
               </p>
               <p className="text-md text-gray-300">
                 ¡Te esperamos con los brazos abiertos!
@@ -154,8 +154,8 @@ const History = () => {
               <iframe
                 width="100%"
                 height="300"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.209888473908!2d-122.41941628468158!3d37.77492977975809!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80858183adf57a17%3A0x25f658a970b9f4d!2s1600%20Folsom%20St%2C%20San%20Francisco%2C%20CA%2094170%2C%20USA!5e0!3m2!1ses-419!2smx!4v1634062237051!5m2!1ses-419!2smx"
-                title="Ubicación del restaurante"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3180.929304870762!2d-5.453944210863741!3d37.13059690035807!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd0d61a7750efd71%3A0x90e7785ad78b7715!2sBAR%20PEP%C3%8DN.!5e0!3m2!1ses!2ses!4v1747407288749!5m2!1ses!2ses" 
+                title="Ubicación de nuestro Bar"
                 frameBorder="0"
                 style={{ border: "0", borderRadius: "8px" }}
                 allowFullScreen

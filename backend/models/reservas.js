@@ -22,8 +22,14 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     fecha_reserva: {
-      type: DataTypes.DATE,
+     type: DataTypes.DATE, // En lugar de DATE, usa `DataTypes.DATE` o `DataTypes.DATEONLY` según corresponda
       allowNull: false,
+      get() {
+        // Obtener la fecha, asegurar que la zona horaria es UTC
+        const value = this.getDataValue('fecha_reserva');
+        // Devuelvo el valor como UTC
+        return value ? new Date(value).toISOString() : null;
+      },
     },
     cantidad: {
       type: DataTypes.INTEGER,

@@ -42,10 +42,13 @@ services:
       - POSTGRES_USER=user1
       - POSTGRES_PASSWORD=malr07@
       - POSTGRES_DB=WEB_BAR_TFG_db
+   
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf.sample 
     ports:
       - "5432:5432"
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf.sample"]
     networks:
       - bar_network
 

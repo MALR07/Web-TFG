@@ -22,20 +22,18 @@ interface Reserva {
   cantidad: number;
   fecha_reserva: string;
   estado: string;
-  usuario: Usuario | null; // Usuario puede ser null
-  plato: Plato | null;     // Plato puede ser null
+  usuario: Usuario | null;
+  plato: Plato | null;
 }
 
 const CamareroReserva: React.FC = () => {
   const { token, isAuthenticated, role } = useAuth();
   const [reservas, setReservas] = useState<Reserva[]>([]);
-  const [platos, setPlatos] = useState<Plato[]>([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState(''); // Estado para almacenar el término de búsqueda
 
-  // Verificamos si el usuario es camarero
   useEffect(() => {
     if (!isAuthenticated) {
       setError('No estás autenticado');
@@ -43,11 +41,10 @@ const CamareroReserva: React.FC = () => {
       setError('No tienes permisos para acceder a esta página');
     } else {
       fetchReservas();
-      fetchPlatos();
     }
   }, [isAuthenticated, role]);
 
-  // Función para obtener todas las reservas
+  // Función para obtener todas las reservas con los datos de usuario y plato
   const fetchReservas = async () => {
     try {
       const res = await axios.get('http://localhost:3001/reservas/reservas', {
@@ -55,62 +52,11 @@ const CamareroReserva: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      // Aquí añadimos la relación con el usuario y el plato en las reservas
-      const reservasConDatos = await Promise.all(
-        res.data.reservas.map(async (reserva: Reserva) => {
-          let usuario = null;
-          let plato = null;
-
-          try {
-            // Intentamos obtener el usuario
-            const usuarioRes = await axios.get(`http://localhost:3001/usuarios/${reserva.usuario?.id_user}`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            usuario = usuarioRes.data;
-          } catch (error) {
-            console.error('Error al obtener usuario:', error);
-          }
-
-          try {
-            // Intentamos obtener el plato
-            const platoRes = await axios.get(`http://localhost:3001/platos/${reserva.id_plato}`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            plato = platoRes.data;
-          } catch (error) {
-            console.error('Error al obtener plato:', error);
-          }
-
-          return {
-            ...reserva,
-            usuario: usuario || { nombre: '', email: '' }, // Si no obtenemos el usuario, lo asignamos como un objeto vacío con propiedades predeterminadas
-            plato: plato || { id_plato: 0, nombre: '', descripcion: '' }, // Si no obtenemos el plato, lo asignamos como un objeto vacío
-          };
-        })
-      );
-
-      setReservas(reservasConDatos);
+      
+      // Ya no necesitamos hacer solicitudes adicionales para obtener usuario y plato, ya que los devuelve el backend
+      setReservas(res.data.reservas || []);
     } catch (err) {
       setError('Error al obtener las reservas');
-    }
-  };
-
-  // Función para obtener todos los platos
-  const fetchPlatos = async () => {
-    try {
-      const res = await axios.get('http://localhost:3001/platos', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setPlatos(res.data.platos || []); // Aseguramos que siempre es un array
-    } catch (err) {
-      setError('Error al obtener los platos');
     }
   };
 
@@ -126,13 +72,16 @@ const CamareroReserva: React.FC = () => {
 
   // Modificar una reserva (gestionar estado)
   const handleGestionarEstado = async (reservaId: number, nuevoEstado: string) => {
+    if (isLoading) return; // Evitar múltiples clics mientras se está cargando
+
     try {
       setIsLoading(true);
-      await axios.put(
+      // Aquí usamos el nuevo endpoint para actualizar el estado de la reserva
+      const res = await axios.put(
         'http://localhost:3001/reservas/gestionar',
         {
           reservaId,
-          newEstado: nuevoEstado,
+          nuevoEstado, // 'confirmada', 'presentada', 'cancelada'
         },
         {
           headers: {
@@ -140,12 +89,12 @@ const CamareroReserva: React.FC = () => {
           },
         }
       );
+
       setSuccessMessage('Estado de la reserva actualizado exitosamente');
-      setIsLoading(false);
-      setError('');
       fetchReservas(); // Refrescamos las reservas para mostrar el cambio de estado
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al actualizar el estado');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -214,23 +163,26 @@ const CamareroReserva: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  {/* Botón para gestionar el estado */}
+                  {/* Botones para gestionar el estado */}
                   <div>
                     <button
-                      className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
+                      className="bg-green-500 text-white px-4 py-2 rounded-md mt-2"
                       onClick={() => handleGestionarEstado(reserva.id_reserva, 'confirmada')}
+                      disabled={reserva.estado === 'confirmada' || isLoading}
                     >
                       Confirmar
                     </button>
                     <button
                       className="bg-yellow-500 text-white px-4 py-2 rounded-md mt-2 ml-2"
                       onClick={() => handleGestionarEstado(reserva.id_reserva, 'presentada')}
+                      disabled={reserva.estado === 'presentada' || isLoading}
                     >
                       Presentada
                     </button>
                     <button
                       className="bg-red-500 text-white px-4 py-2 rounded-md mt-2 ml-2"
                       onClick={() => handleGestionarEstado(reserva.id_reserva, 'cancelada')}
+                      disabled={reserva.estado === 'cancelada' || isLoading}
                     >
                       Cancelar
                     </button>

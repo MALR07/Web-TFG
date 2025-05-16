@@ -11,7 +11,7 @@ const Videos = () => {
             <iframe
               width="100%"
               height="315"
-              src="https://www.youtube.com/watch?v=qODkQBjvZgk" // Reemplaza con el ID del video de YouTube
+              src=" https://www.youtube.com/embed/qODkQBjvZgk" // Reemplaza con el ID del video de YouTube
               title="Verbena 2024"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -37,7 +37,7 @@ const Videos = () => {
             <iframe
               width="100%"
               height="315"
-              src="https://www.youtube.com/watch?v=YsUkRntVH8M" // Reemplaza con el ID del video de YouTube
+              src=" https://www.youtube.com/embed/YsUkRntVH8M" // Reemplaza con el ID del video de YouTube
               title="Verbena 2023"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
