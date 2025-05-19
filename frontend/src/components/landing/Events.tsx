@@ -4,37 +4,32 @@ const Events = () => {
   const events = [
     {
       id: 1,
-      name: "Cena de Navidad",
-      date: "20 de diciembre de 2024",
-      description: "Celebra con nosotros la mágica noche de Navidad con una cena especial de 4 tiempos.",
-      image: "/images/cena-navidad.jpg",
-      link: "https://www.ejemplo.com/cena-navidad"
+      name: "Verbena 2024",
+      description: "La verbena de nuestro barrio, con música en vivo.",
+      image: "/cante1.jpg",
+      link: "https://www.facebook.com/people/Bar-Pepin/100064156744460/#"
     },
     {
       id: 2,
-      name: "Fiesta de Año Nuevo",
-      date: "31 de diciembre de 2024",
-      description: "La mejor fiesta de Año Nuevo, con música en vivo, comida deliciosa y muchas sorpresas.",
-      image: "/images/fiesta-ano-nuevo.jpg",
-      link: "https://www.ejemplo.com/fiesta-ano-nuevo"
+      name: "Verbena 2022",
+      description: "Una verbena inolvidable con mucha piña.",
+      image: "/plantilla2.jpg",
+      link: "https://www.facebook.com/people/Bar-Pepin/100064156744460/#"
     },
     {
       id: 3,
-      name: "Concierto en Vivo",
-      date: "15 de enero de 2025",
-      description: "Disfruta de música en vivo en el Bar Pepín con artistas locales de renombre.",
-      image: "/images/concierto-en-vivo.jpg",
-      link: "https://www.ejemplo.com/concierto-en-vivo"
+      name: "Torneos de Póker de los Domingos de Verbena",
+      description: "Torneos de Poker de las Verbenas",
+      image: "/cartaspoker.jpg",
+      link: "https://www.facebook.com/people/Bar-Pepin/100064156744460/#"
     },
   ];
 
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [isImageOpen, setIsImageOpen] = useState(false);
-
   const sectionRef = useRef(null);
 
-  // Usamos IntersectionObserver para la visibilidad de la sección
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -49,14 +44,14 @@ const Events = () => {
     };
   }, []);
 
-  const openImage = (imageUrl) => {
-    setSelectedImage(imageUrl);
+  const openImage = (event) => {
+    setSelectedEvent(event);
     setTimeout(() => setIsImageOpen(true), 20);
   };
 
   const closeImage = () => {
     setIsImageOpen(false);
-    setTimeout(() => setSelectedImage(null), 300);
+    setTimeout(() => setSelectedEvent(null), 300);
   };
 
   return (
@@ -75,21 +70,20 @@ const Events = () => {
           Eventos Pasados
         </h2>
         <p className="text-lg text-gray-600 mb-12">
-          ¡Revive los momentos más especiales en Bar Pepín con nuestros eventos exclusivos!
+          ¡Revive los momentos más especiales en Bar Pepín!
         </p>
 
-        {/* Contenedor para los eventos */}
+        {/* Contenedor de tarjetas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {events.map((event, index) => (
             <div
               key={event.id}
-              className={`bg-black bg-opacity-60 p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-gray-500 transform ${
+              className={`bg-black bg-opacity-60 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-500 transform ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
-              style={{ transitionDelay: `${index * 100}ms` }} // Animación en cascada
-              onClick={() => openImage(event.image)}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
-              <div>
+              <div onClick={() => openImage(event)} className="cursor-pointer">
                 <img
                   src={event.image}
                   alt={`Imagen de ${event.name}`}
@@ -98,7 +92,6 @@ const Events = () => {
                 />
               </div>
               <h3 className="text-2xl font-semibold text-white mb-2">{event.name}</h3>
-              <p className="text-sm text-gray-300 mb-4">{event.date}</p>
               <p className="text-base text-gray-200 mb-4">{event.description}</p>
               <a
                 href={event.link}
@@ -114,7 +107,7 @@ const Events = () => {
       </section>
 
       {/* Modal de imagen ampliada */}
-      {selectedImage && (
+      {selectedEvent && selectedEvent.image && selectedEvent.name && selectedEvent.description && (
         <div
           className={`
             fixed inset-0 z-50 flex items-center justify-center
@@ -132,10 +125,14 @@ const Events = () => {
             </button>
             <div className="flex flex-col lg:flex-row gap-6 items-center">
               <img
-                src={selectedImage}
+                src={selectedEvent.image}
                 alt="Imagen ampliada"
                 className="w-full lg:w-1/2 h-auto rounded-lg object-cover"
               />
+              <div className="text-left">
+                <h3 className="text-3xl font-bold text-black mb-2">{selectedEvent.name}</h3>
+                <p className="text-lg text-gray-800">{selectedEvent.description}</p>
+              </div>
             </div>
           </div>
         </div>

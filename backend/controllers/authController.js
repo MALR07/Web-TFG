@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt'); // Reemplazar bcryptjs por bcrypt
+const bcrypt = require('bcrypt'); 
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 const sendPasswordRecoveryEmail = require('../config/mailer');

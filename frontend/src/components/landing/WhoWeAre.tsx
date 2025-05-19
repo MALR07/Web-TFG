@@ -71,7 +71,7 @@ const WhoWeAre = () => {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
-          Cocina tradicional con un toque moderno y un ambiente acogedor.
+          Cañas frequisimas y platos de calidad, ven a disfrutarlo.
         </p>
 
         {/* Botón animado que entra desde abajo */}

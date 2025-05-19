@@ -71,21 +71,21 @@ const History = () => {
             } cursor-pointer`}
             onClick={() =>
               openImage(
-                "https://source.unsplash.com/1600x900/?restaurant",
-                "Fundado en 2025, nuestro restaurante nació con la idea de ofrecer una experiencia gastronómica única..."
+                "/historia 2.JPG",
+                "Nuestro Bar nació con la idea de sacar a delante a una familia que a dia de hoy tras una generacion sigue adelante."
               )
             }
           >
             <div className="w-full lg:w-1/2 mb-4 lg:mb-0 relative">
               <img
-                src="https://source.unsplash.com/1600x900/?restaurant"
+                src="/historia 2.JPG"
                 alt="Historia 1"
                 className="w-full h-64 object-cover rounded-lg"
               />
             </div>
             <div className="w-full lg:w-1/2 text-white text-left px-4">
               <p className="text-xl">
-                Fundado en 2025, nuestro restaurante nació con la idea de ofrecer una experiencia gastronómica única.
+                Nuestro Bar nació con la idea de sacar a delante a una familia que a dia de hoy tras una generacion sigue adelante.
               </p>
             </div>
           </div>
@@ -97,21 +97,21 @@ const History = () => {
             } cursor-pointer`}
             onClick={() =>
               openImage(
-                "https://source.unsplash.com/1600x900/?bar",
-                "A lo largo de los años, hemos evolucionado y ampliado nuestro menú, pero siempre manteniendo el sabor auténtico..."
+                "/cerveza.JPG",
+                "El mejor servico y la mejor comida de la zona, con un trato familiar y cercano, lo mejor del pantano."
               )
             }
           >
             <div className="w-full lg:w-1/2 mb-4 lg:mb-0 relative order-last lg:order-first">
               <img
-                src="https://source.unsplash.com/1600x900/?bar"
+                src="/cerveza.JPG"
                 alt="Historia 2"
                 className="w-full h-64 object-cover rounded-lg"
               />
             </div>
             <div className="w-full lg:w-1/2 text-white text-left px-4">
               <p className="text-xl">
-                A lo largo de los años, hemos evolucionado y ampliado nuestro menú manteniendo el sabor auténtico.
+                El mejor servico y la mejor comida de la zona, con un trato familiar y cercano, lo mejor del pantano.
               </p>
             </div>
           </div>

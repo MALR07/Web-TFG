@@ -24,13 +24,13 @@ const NextArrow = ({ onClick }) => (
 
 const Carousel = () => {
   const images = [
-    'https://source.unsplash.com/1600x900/?restaurant',
-    'https://source.unsplash.com/1600x900/?food',
-    'https://source.unsplash.com/1600x900/?dining',
-    'https://source.unsplash.com/1600x900/?coffee',
-    'https://source.unsplash.com/1600x900/?bar',
-    'https://source.unsplash.com/1600x900/?wine',
-    'https://source.unsplash.com/1600x900/?celebration',
+    '/gente2.jpg',
+    '/gente.jpg',
+    'poker.jpg',
+    '/cantar2.jpg',
+    '/gente3.jpg',
+    '/servir2.jpg',
+    '/fotogrande1.jpeg',
   ];
 
   const sectionRef = useRef(null);
