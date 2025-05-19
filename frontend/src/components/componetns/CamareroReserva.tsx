@@ -1,203 +1,282 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../components/componetns/AuthContext.tsx';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Definimos las interfaces de los datos
-interface Usuario {
-  id_user: number;
-  nombre: string;
-  email: string;
-}
-
-interface Plato {
-  id_plato: number;
-  nombre: string;
-  descripcion: string;
-  imagen?: string;
-}
-
-interface Reserva {
-  id_reserva: number;
-  id_plato: number;
-  cantidad: number;
-  fecha_reserva: string;
-  estado: string;
-  usuario: Usuario | null;
-  plato: Plato | null;
-}
-
-const CamareroReserva: React.FC = () => {
-  const { token, isAuthenticated, role } = useAuth();
-  const [reservas, setReservas] = useState<Reserva[]>([]);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(''); // Estado para almacenar el término de búsqueda
+const AdminDashboard: React.FC = () => {
+  const { isAuthenticated, token } = useAuth();
+  const [reservas, setReservas] = useState<any[]>([]);
+  const [platos, setPlatos] = useState<any[]>([]);
+  const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [estadoFilter, setEstadoFilter] = useState<string>('');
+  const [filteredReservas, setFilteredReservas] = useState<any[]>([]);
+  const [orderBy, setOrderBy] = useState<'closest' | 'farthest' | 'default'>('default');
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setError('No estás autenticado');
-    } else if (role !== 'camarero') {
-      setError('No tienes permisos para acceder a esta página');
-    } else {
+    if (isAuthenticated) {
       fetchReservas();
+      fetchPlatos();
     }
-  }, [isAuthenticated, role]);
+  }, [isAuthenticated, token]);
 
-  // Función para obtener todas las reservas con los datos de usuario y plato
+  useEffect(() => {
+    let reservasFiltradas = reservas;
+
+    if (searchQuery) {
+      reservasFiltradas = reservasFiltradas.filter(
+        (reserva) =>
+          reserva.User?.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          reserva.User?.email.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (estadoFilter) {
+      reservasFiltradas = reservasFiltradas.filter(
+        (reserva) => reserva.estado.toLowerCase() === estadoFilter.toLowerCase()
+      );
+    }
+
+    if (orderBy === 'closest') {
+      reservasFiltradas = reservasFiltradas.sort((a, b) => {
+        const diffA = Math.abs(new Date(a.fecha_reserva).getTime() - Date.now());
+        const diffB = Math.abs(new Date(b.fecha_reserva).getTime() - Date.now());
+        return diffA - diffB;
+      });
+    } else if (orderBy === 'farthest') {
+      reservasFiltradas = reservasFiltradas.sort((a, b) => {
+        const diffA = Math.abs(new Date(a.fecha_reserva).getTime() - Date.now());
+        const diffB = Math.abs(new Date(b.fecha_reserva).getTime() - Date.now());
+        return diffB - diffA;
+      });
+    }
+
+    setFilteredReservas(reservasFiltradas);
+  }, [reservas, searchQuery, estadoFilter, orderBy]);
+
   const fetchReservas = async () => {
     try {
       const res = await axios.get('http://localhost:3001/reservas/reservas', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
-      // Ya no necesitamos hacer solicitudes adicionales para obtener usuario y plato, ya que los devuelve el backend
-      setReservas(res.data.reservas || []);
+      setReservas(res.data.reservas);
     } catch (err) {
       setError('Error al obtener las reservas');
     }
   };
 
-  // Filtrar las reservas según el término de búsqueda
-  const filteredReservas = reservas.filter((reserva) => {
-    const usuario = reserva.usuario || { nombre: '', email: '' }; // Aseguramos que siempre haya un usuario con valores predeterminados
-    const nombre = usuario.nombre.toLowerCase();
-    const email = usuario.email.toLowerCase();
-    const search = searchTerm.toLowerCase();
+  const fetchPlatos = async () => {
+    try {
+      const res = await axios.get('http://localhost:3001/platos/available', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPlatos(res.data);
+    } catch (err) {
+      setError('Error al obtener los platos');
+    }
+  };
 
-    return nombre.includes(search) || email.includes(search);
-  });
+  const handleGestionarReserva = async (reservaId: number, nuevoEstado: string) => {
+    const confirmMessage =
+      nuevoEstado === 'confirmada'
+        ? '¿Estás seguro de que deseas confirmar esta reserva?'
+        : '¿Estás seguro de que deseas marcar esta reserva como presentada?';
 
-  // Modificar una reserva (gestionar estado)
-  const handleGestionarEstado = async (reservaId: number, nuevoEstado: string) => {
-    if (isLoading) return; // Evitar múltiples clics mientras se está cargando
+    const confirm = window.confirm(confirmMessage);
+    if (!confirm) return;
 
     try {
       setIsLoading(true);
-      // Aquí usamos el nuevo endpoint para actualizar el estado de la reserva
-      const res = await axios.put(
+      await axios.put(
         'http://localhost:3001/reservas/gestionar',
-        {
-          reservaId,
-          nuevoEstado, // 'confirmada', 'presentada', 'cancelada'
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { reservaId, nuevoEstado },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setSuccessMessage('Estado de la reserva actualizado exitosamente');
-      fetchReservas(); // Refrescamos las reservas para mostrar el cambio de estado
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al actualizar el estado');
+      toast.success(`Reserva ${nuevoEstado === 'confirmada' ? 'confirmada' : 'marcada como presentada'}`);
+      fetchReservas();
+    } catch {
+      toast.error('Error al gestionar la reserva');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Verificar si hay errores o mensajes de éxito
-  const renderMessages = () => {
-    return (
-      <>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
-        {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
-      </>
-    );
+  const handleEliminarReserva = async (reservaId: number) => {
+    const confirm = window.confirm('¿Estás seguro de que deseas cancelar esta reserva?');
+    if (!confirm) return;
+
+    try {
+      setIsLoading(true);
+      // Ahora se hace la solicitud DELETE en vez de POST
+      const response = await axios.delete(
+        'http://localhost:3001/reservas/cancelar', // Asegúrate de que esta URL esté correcta en el backend
+        {
+          data: { reservaId }, // Aquí pasamos el reservaId dentro de la propiedad `data`
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Mostrar la respuesta del servidor en la consola para verificar que es correcta
+      console.log(response.data);
+
+      // Mostrar un mensaje de éxito
+      toast.success('Reserva cancelada');
+      // Recargar las reservas después de la cancelación
+      fetchReservas();
+    } catch (err: any) {
+      console.error('Error al cancelar la reserva:', err);
+      if (err.response) {
+        toast.error(`Error: ${err.response.data.message || 'Error al cancelar la reserva'}`);
+      } else {
+        toast.error('Error al conectar con el servidor');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatFechaConDescuento = (fecha: string) => {
+    const reservaDate = new Date(fecha);
+    reservaDate.setHours(reservaDate.getHours() - 2);
+    return reservaDate.toLocaleString();
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-4 text-center">Dashboard Camarero</h1>
+    <div
+      style={{
+        backgroundImage: "url('/fondoreserva.jpeg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+      className="overflow-x-auto"
+    >
+      <div className="w-full max-w-4xl lg:max-w-5xl bg-white shadow-xl rounded-lg p-4 sm:p-8 relative z-10">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-center text-yellow-500 mb-8">Gestión de Reservas</h1>
 
-      {/* Campo de búsqueda */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Buscar por nombre o correo"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border p-3 rounded-md w-full"
-        />
-      </div>
+        {error && <div className="bg-red-500 text-white p-4 rounded-md mb-4">{error}</div>}
 
-      {/* Mostrar reservas filtradas */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Reservas Filtradas</h2>
-        {filteredReservas.length === 0 ? (
-          <p className="text-gray-500">No hay reservas que coincidan con la búsqueda.</p>
-        ) : (
-          <div className="space-y-4">
-            {filteredReservas.map((reserva) => {
-              return (
-                <div key={reserva.id_reserva} className="p-4 border rounded-lg shadow-md flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-lg">
-                      {reserva.usuario ? reserva.usuario.nombre : 'Usuario desconocido'}
-                    </h3>
-                    <p className="text-gray-600">
-                      {reserva.usuario ? reserva.usuario.email : 'Correo desconocido'}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(reserva.fecha_reserva).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-white ${
-                        reserva.estado === 'confirmada'
-                          ? 'bg-green-500'
-                          : reserva.estado === 'presentada'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                      }`}
-                    >
-                      {reserva.estado}
-                    </span>
-                    {reserva.plato && (
-                      <div className="mt-2 text-sm text-gray-500">
-                        <strong>Plato:</strong> {reserva.plato.nombre}
-                      </div>
-                    )}
-                  </div>
-                  {/* Botones para gestionar el estado */}
-                  <div>
-                    <button
-                      className="bg-green-500 text-white px-4 py-2 rounded-md mt-2"
-                      onClick={() => handleGestionarEstado(reserva.id_reserva, 'confirmada')}
-                      disabled={reserva.estado === 'confirmada' || isLoading}
-                    >
-                      Confirmar
-                    </button>
-                    <button
-                      className="bg-yellow-500 text-white px-4 py-2 rounded-md mt-2 ml-2"
-                      onClick={() => handleGestionarEstado(reserva.id_reserva, 'presentada')}
-                      disabled={reserva.estado === 'presentada' || isLoading}
-                    >
-                      Presentada
-                    </button>
-                    <button
-                      className="bg-red-500 text-white px-4 py-2 rounded-md mt-2 ml-2"
-                      onClick={() => handleGestionarEstado(reserva.id_reserva, 'cancelada')}
-                      disabled={reserva.estado === 'cancelada' || isLoading}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Filtros */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Buscar por nombre o correo"
+            className="p-2 border rounded w-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <select
+            value={estadoFilter}
+            onChange={(e) => setEstadoFilter(e.target.value)}
+            className="p-2 border rounded w-full"
+          >
+            <option value="">Filtrar por estado</option>
+            <option value="confirmada">Confirmada</option>
+            <option value="presentado">Presentado</option>
+          </select>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => setOrderBy('closest')}
+              className={`p-2 rounded border transition-all duration-200 ${orderBy === 'closest' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-blue-200'}`}
+            >
+              Más Cercanas
+            </button>
+            <button
+              onClick={() => setOrderBy('farthest')}
+              className={`p-2 rounded border transition-all duration-200 ${orderBy === 'farthest' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-blue-200'}`}
+            >
+              Más Lejanas
+            </button>
+            <button
+              onClick={() => setOrderBy('default')}
+              className={`p-2 rounded border transition-all duration-200 ${orderBy === 'default' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-blue-200'}`}
+            >
+              Ver Todas
+            </button>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Mostrar mensajes de error o éxito */}
-      {renderMessages()}
+        {/* Lista de reservas */}
+        <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-4 text-center">Reservas de los clientes</h2>
+
+          {filteredReservas.length === 0 ? (
+            <p className="text-gray-600">No hay reservas.</p>
+          ) : (
+            <ul className="space-y-4">
+              {filteredReservas.map((reserva) => {
+                const platoReserva = reserva.Plato;
+                const usuarioReserva = reserva.User;
+
+                if (!platoReserva || !usuarioReserva) {
+                  return (
+                    <li key={reserva.id_reserva} className="p-4 bg-white rounded-lg shadow-sm">
+                      <p className="text-red-600">Datos incompletos para esta reserva.</p>
+                    </li>
+                  );
+                }
+
+                return (
+                  <li
+                    key={reserva.id_reserva}
+                    className="p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold">{platoReserva.nombre}</p>
+                        <p className="text-sm text-gray-600">
+                          {formatFechaConDescuento(reserva.fecha_reserva)}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Estado: <strong>{reserva.estado}</strong>
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          <strong>Reservado por:</strong> {usuarioReserva.nombre} ({usuarioReserva.email})
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <strong>Cantidad:</strong> {reserva.cantidad}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => handleGestionarReserva(reserva.id_reserva, 'confirmada')}
+                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition disabled:opacity-50"
+                          disabled={isLoading}
+                        >
+                          Confirmado
+                        </button>
+                        <button
+                          onClick={() => handleGestionarReserva(reserva.id_reserva, 'presentado')}
+                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50"
+                          disabled={isLoading}
+                        >
+                          Presentado
+                        </button>
+                        <button
+                          onClick={() => handleEliminarReserva(reserva.id_reserva)}
+                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+                          disabled={isLoading}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        <ToastContainer position="bottom-right" autoClose={3000} />
+      </div>
     </div>
   );
 };
 
-export default CamareroReserva;
+export default AdminDashboard;

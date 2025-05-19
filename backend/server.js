@@ -15,9 +15,9 @@ const cron = require('node-cron');
 const gestionarReservasExpiradas = require('./cron/cronReservas');
 
 // Ejecutar cada 5 minutos
-cron.schedule('*/5 * * * *', async () => {
-  await gestionarReservasExpiradas();
-});
+//cron.schedule('*/5 * * * *', async () => {
+  //await gestionarReservasExpiradas();
+//});
 
 // Cargar variables de entorno
 dotenv.config();

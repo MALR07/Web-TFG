@@ -143,31 +143,49 @@ module.exports = {
 }],
 
 
-  // Función para gestionar las reservas (solo camareros pueden gestionarlas)
-  manageReserva: [verifyToken, checkRole('camarero'), async (req, res) => {
-    try {
-      const { reservaId } = req.body;
+  // Función para cambiar el estado de una reserva (solo camareros pueden modificar el estado)
+manageReserva: [verifyToken, checkRole('camarero'), async (req, res) => {
+  try {
+    const { reservaId, nuevoEstado } = req.body;
 
-      // Buscar la reserva
-      const reserva = await Reservas.findByPk(reservaId, {
-        include: [
-          {
-            model: Platos,
-            as: 'Plato', // Obtener los platos relacionados con la reserva
-          },
-        ],
-      });
-
-      if (!reserva) {
-        return res.status(404).json({ message: 'Reserva no encontrada' });
-      }
-
-      res.status(200).json({ message: 'Reserva gestionada exitosamente', reserva });
-    } catch (error) {
-      console.error('Error al gestionar la reserva:', error);
-      res.status(500).json({ message: 'Error al gestionar la reserva', error: error.message });
+    // Verificar que el nuevo estado sea válido
+    const estadosValidos = ['confirmada', 'presentado', 'expirada'];
+    if (!estadosValidos.includes(nuevoEstado)) {
+      return res.status(400).json({ message: 'Estado inválido' });
     }
-  }],
+
+    // Buscar la reserva por su ID
+    const reserva = await Reservas.findByPk(reservaId, {
+      include: [
+        {
+          model: Platos,
+          as: 'Plato', // Obtener los platos relacionados con la reserva
+        },
+      ],
+    });
+
+    if (!reserva) {
+      return res.status(404).json({ message: 'Reserva no encontrada' });
+    }
+
+    // Verificar si el estado de la reserva es el mismo que el nuevo estado
+    if (reserva.estado === nuevoEstado) {
+      return res.status(400).json({ message: 'El estado de la reserva ya es el mismo' });
+    }
+
+    // Actualizar el estado de la reserva
+    reserva.estado = nuevoEstado;
+    await reserva.save(); // Guardar los cambios en la base de datos
+
+    res.status(200).json({
+      message: 'Estado de la reserva actualizado exitosamente',
+      reserva,
+    });
+  } catch (error) {
+    console.error('Error al gestionar el estado de la reserva:', error);
+    res.status(500).json({ message: 'Error al gestionar el estado de la reserva', error: error.message });
+  }
+}],
 
   // Función para cancelar una reserva
   cancelReserva: [verifyToken, async (req, res) => {
