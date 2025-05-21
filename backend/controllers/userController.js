@@ -27,54 +27,38 @@ const sendEmail = async (to, subject, text) => {
 
 // --- Controladores --- 
 module.exports = {
-  
- createUsuario: [verifyToken, checkRole('camarero'), async (req, res) => {
-  const { nombre, email, contrasena, rol } = req.body;
 
-  // Verificamos que el rol sea válido
-  if (rol !== 'camarero' && rol !== 'cliente') {
-    return res.status(400).json({ message: 'Rol inválido' });
-  }
+  createUsuario: [verifyToken, checkRole('camarero'), async (req, res) => {
+    const { nombre, email, contrasena, rol } = req.body;
 
-  if (!nombre || !email || !contrasena) {
-    return res.status(400).json({ message: 'Faltan datos requeridos' });
-  }
-
-  try {
-    // Verificamos si el email ya está registrado
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ message: 'El correo electrónico ya está registrado' });
+    if (!contrasena || typeof contrasena !== 'string') {
+      return res.status(400).json({ message: 'La contraseña es requerida y debe ser un string' });
     }
 
-    // Encriptamos la contraseña
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(contrasena, salt);
+    try {
+      // Verificamos si el email ya está registrado
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'El correo electrónico ya está registrado' });
+      }
 
-    const newUser = await User.create({
-      nombre,
-      email,
-      contrasena: hashedPassword,
-      rol,
-    });
+      // Crear el usuario con los datos proporcionados
+      const user = await User.create({ nombre, email, contrasena, rol });
 
-    // Enviar correo de bienvenida
-    await sendEmail(
-      newUser.email,
-      'Bienvenido a nuestro servicio',
-      `Hola ${newUser.nombre}, tu cuenta ha sido creada exitosamente.`
-    );
+      // Enviar correo de bienvenida
+      await sendEmail(
+        user.email,
+        'Bienvenido a nuestro servicio',
+        `Hola ${user.nombre}, tu cuenta ha sido creada exitosamente.`
+      );
 
-    // Devolver usuario sin contraseña
-    const userWithoutPassword = { ...newUser.toJSON() };
-    delete userWithoutPassword.contrasena;
-
-    res.status(201).json({ message: 'Usuario creado', user: userWithoutPassword });
-  } catch (error) {
-    console.error('Error al crear el usuario:', error);
-    res.status(500).json({ message: 'Error al crear usuario', error: error.message });
-  }
-}],
+      // Responder solo con el mensaje
+      res.status(201).json({ message: `Usuario registrado como ${rol}` });
+    } catch (error) {
+      console.error('Error al registrar el usuario:', error);
+      res.status(500).json({ message: 'Error al registrar el usuario' });
+    }
+  }],
 
   updateUsuario: [verifyToken, checkRole('camarero'), async (req, res) => {
   const { id_user } = req.params;

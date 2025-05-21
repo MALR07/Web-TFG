@@ -25,7 +25,7 @@ const getUserFromToken = (): User | null => {
 
     const decoded = jwtDecode<any>(token); // Ahora funciona con el alias
     return {
-      name: decoded.name || 'Usuario',
+      name: decoded.name || '',
       email: decoded.email || '',
     };
   } catch (error) {
@@ -186,6 +186,15 @@ const Header: React.FC = () => {
                         className={navButtonClass}
                       >
                         Gestión Platos
+                      </button>
+                       <button
+                        onClick={() => {
+                          navigate('/manage-coments');
+                          setShowUserPanel(false);
+                        }}
+                        className={navButtonClass}
+                      >
+                        Gestión Comentarios
                       </button>
                       <button
                         onClick={() => {

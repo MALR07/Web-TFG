@@ -13,6 +13,7 @@ const Usuarios: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // Para mostrar/ocultar la contraseña
 
   useEffect(() => {
     fetchUsuarios();
@@ -69,7 +70,7 @@ const Usuarios: React.FC = () => {
   const handleEdit = (usuario: any) => {
     setNombre(usuario.nombre);
     setEmail(usuario.email);
-    setContrasena('');
+    setContrasena('');  // Para no mostrar la contraseña anterior por seguridad
     setRol(usuario.rol);
     setEditUserId(usuario.id_user);
   };
@@ -86,6 +87,11 @@ const Usuarios: React.FC = () => {
         setError('Error al eliminar el usuario.');
       }
     }
+  };
+
+  // Función para alternar la visibilidad de la contraseña
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -125,14 +131,26 @@ const Usuarios: React.FC = () => {
 
             <div className="space-y-2">
               <label htmlFor="contrasena" className="block">Contraseña</label>
-              <input
-                id="contrasena"
-                type="password"
-                value={contrasena}
-                onChange={(e) => setContrasena(e.target.value)}
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+              <div className="relative">
+                <input
+                  id="contrasena"
+                  type={showPassword ? 'text' : 'password'}  // Dependiendo de la visibilidad
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500"
+                >
+                  {showPassword ? 'Ocultar' : 'Mostrar'}
+                </button>
+              </div>
+              {/* Mensaje aclaratorio sobre la contraseña */}
+              <p className="text-sm text-gray-500 mt-1">
+                Si no se edita la contraseña, se mantendrá igual. Si se edita, la contraseña cambiará. Asegúrate de recordarla.
+              </p>
             </div>
 
             <div className="space-y-2">

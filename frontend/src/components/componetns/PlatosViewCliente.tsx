@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Interfaz para Reserva
 interface Reserva {
   id_reserva: number;
   id_plato: number;
@@ -12,6 +13,7 @@ interface Reserva {
   estado: string;
 }
 
+// Interfaz para Plato
 interface Plato {
   id_plato: number;
   nombre: string;
@@ -19,14 +21,21 @@ interface Plato {
   imagen?: string;
 }
 
+// Interfaz para Comentario
 interface Comentario {
-  id: number;
+  id_comentario: number;
   comentario: string;
   id_user: number;
   id_plato: number;
   createdAt: string;
   id_reserva?: number;
   puntuacion?: number;
+  User?: {
+    nombre: string;
+  };
+  Plato?: {
+    nombre: string;
+  };
 }
 
 const HistorialReservas: React.FC = () => {
@@ -34,51 +43,45 @@ const HistorialReservas: React.FC = () => {
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [platos, setPlatos] = useState<Plato[]>([]);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
-  const [nuevoComentario, setNuevoComentario] = useState<string>(""); 
+  const [nuevoComentario, setNuevoComentario] = useState<string>("");
   const [comentarioAbiertoPara, setComentarioAbiertoPara] = useState<number | null>(null);
   const [expandedReserva, setExpandedReserva] = useState<number | null>(null);
   const [rating, setRating] = useState<number>(0);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [orden, setOrden] = useState<string>("reciente");
+  const [errorMensaje, setErrorMensaje] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (isAuthenticated && token) {
-      fetchReservas();
-      fetchPlatos();
-      fetchComentarios();
+  // Obtener el id_user del localStorage
+  const idUser = localStorage.getItem("id_user");
+
+  // Función general para obtener datos de las reservas, platos y comentarios
+  const fetchData = useCallback(async () => {
+    if (!isAuthenticated || !token) return;
+    
+    setLoading(true);
+    try {
+      const reservasResponse = await axios.get("http://localhost:3001/reservas/reservas", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const platosResponse = await axios.get("http://localhost:3001/platos/available", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const comentariosResponse = await axios.get("http://localhost:3001/comentarios");
+
+      setReservas(reservasResponse.data.reservas || reservasResponse.data);
+      setPlatos(platosResponse.data);
+      setComentarios(comentariosResponse.data);
+    } catch (error) {
+      toast.error("Error al cargar los datos");
+    } finally {
+      setLoading(false);
     }
   }, [isAuthenticated, token]);
 
-  const fetchReservas = async () => {
-    try {
-      const res = await axios.get("http://localhost:3001/reservas/reservas", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setReservas(res.data.reservas || res.data);
-    } catch {
-      toast.error("Error al cargar reservas");
-    }
-  };
-
-  const fetchPlatos = async () => {
-    try {
-      const res = await axios.get("http://localhost:3001/platos/available", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setPlatos(res.data);
-    } catch {
-      toast.error("Error al cargar platos");
-    }
-  };
-
-  const fetchComentarios = async () => {
-    try {
-      const res = await axios.get("http://localhost:3001/comentarios/");
-      setComentarios(res.data);
-    } catch {
-      toast.error("Error al cargar comentarios");
-    }
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const toggleReservaDetails = (id: number) => {
     setExpandedReserva(expandedReserva === id ? null : id);
@@ -98,6 +101,16 @@ const HistorialReservas: React.FC = () => {
       toast.error("Selecciona una calificación");
       return;
     }
+
+    const comentarioExistente = comentarios.find(
+      (c) => c.id_user === Number(idUser) && c.id_plato === idPlato && c.id_reserva === idReserva
+    );
+
+    if (comentarioExistente) {
+      setErrorMensaje("Ya has comentado este plato.");
+      return;
+    }
+
     try {
       await axios.post(
         "http://localhost:3001/comentarios/crear",
@@ -115,8 +128,9 @@ const HistorialReservas: React.FC = () => {
       setNuevoComentario("");
       setComentarioAbiertoPara(null);
       setRating(0);
-      fetchComentarios();
-    } catch {
+      setErrorMensaje("");
+      fetchData(); // Volver a obtener los datos actualizados
+    } catch (error) {
       toast.error("Error al enviar comentario");
     }
   };
@@ -127,8 +141,8 @@ const HistorialReservas: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Comentario eliminado");
-      fetchComentarios();
-    } catch {
+      fetchData(); // Volver a obtener los datos actualizados
+    } catch (error) {
       toast.error("Error al eliminar comentario");
     }
   };
@@ -172,22 +186,24 @@ const HistorialReservas: React.FC = () => {
     return date.toLocaleString();
   };
 
-  const reservasFiltradas = reservas
-    .filter((reserva) => {
-      if (filtroEstado !== "todos") {
-        return reserva.estado === filtroEstado;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (orden === "reciente") {
-        return new Date(b.fecha_reserva).getTime() - new Date(a.fecha_reserva).getTime();
-      }
-      return new Date(a.fecha_reserva).getTime() - new Date(b.fecha_reserva).getTime();
-    });
+  const reservasFiltradas = useMemo(() => {
+    return reservas
+      .filter((reserva) => {
+        if (filtroEstado !== "todos") {
+          return reserva.estado === filtroEstado;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (orden === "reciente") {
+          return new Date(b.fecha_reserva).getTime() - new Date(a.fecha_reserva).getTime();
+        }
+        return new Date(a.fecha_reserva).getTime() - new Date(b.fecha_reserva).getTime();
+      });
+  }, [reservas, filtroEstado, orden]);
 
   return (
-    <div className="max-w-full mx-auto p-6 bg-cover bg-fixed bg-center relative" style={{ backgroundImage: "url('fondoreserva.jpeg')" }}>
+    <div className="min-h-screen bg-cover bg-fixed bg-center relative" style={{ backgroundImage: "url('fondoreserva.jpeg')" }}>
       <div className="bg-white text-yellow-400 p-4 rounded-md shadow-md mb-6 w-full text-center">
         <h1 className="text-3xl font-bold">Historial de Reservas</h1>
       </div>
@@ -201,7 +217,9 @@ const HistorialReservas: React.FC = () => {
         <button onClick={() => setOrden("antigua")} className={`${orden === "antigua" ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-800"} px-4 py-2 rounded-md`}>Más Antigua</button>
       </div>
 
-      {reservasFiltradas.length === 0 ? (
+      {loading ? (
+        <p className="text-center text-yellow-500">Cargando...</p>
+      ) : reservasFiltradas.length === 0 ? (
         <p className="text-center text-red-600">No tienes reservas aún.</p>
       ) : (
         <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg shadow-lg mb-8">
@@ -209,7 +227,7 @@ const HistorialReservas: React.FC = () => {
             {reservasFiltradas.map((reserva) => {
               const plato = platos.find((p) => p.id_plato === reserva.id_plato);
               const comentarioExistente = comentarios.find(
-                (c) => c.id_user === user?.id_user && c.id_plato === reserva.id_plato && c.id_reserva === reserva.id_reserva
+                (c) => c.id_user === Number(idUser) && c.id_plato === reserva.id_plato && c.id_reserva === reserva.id_reserva
               );
 
               return (
@@ -254,7 +272,7 @@ const HistorialReservas: React.FC = () => {
                             )}
                             {puedeEliminar(comentarioExistente) && (
                               <button
-                                onClick={() => eliminarComentario(comentarioExistente.id)}
+                                onClick={() => eliminarComentario(comentarioExistente.id_comentario)}
                                 className="text-red-600 underline transition-all duration-300 hover:scale-105"
                               >
                                 Eliminar comentario
@@ -306,6 +324,10 @@ const HistorialReservas: React.FC = () => {
             })}
           </ul>
         </div>
+      )}
+
+      {errorMensaje && (
+        <div className="mt-4 text-red-600 text-center">{errorMensaje}</div>
       )}
       <ToastContainer />
     </div>

@@ -29,6 +29,7 @@ import PrivateRoute from './components/componetns/PrivateRoute';
 import ManageReservations from './components/componetns/CamareroReserva';  
 import ManageDishes from './components/componetns/PlatosManagement';  
 import ManageUsers from './components/componetns/ManageUsers';  // Gestión de usuarios
+import ManageComents from './components/componetns/CamareroComentario.jsx';  // Gestión de comentarios
 
 // Componente de cliente
 import ReservationPage from './components/componetns/ClientReserva';  // Reserva
@@ -86,6 +87,7 @@ const App = () => {
             <Route path="/manage-reservations" element={<ManageReservations />} />
             <Route path="/manage-dishes" element={<ManageDishes />} />
             <Route path="/manage-users" element={<ManageUsers />} />  {/* Gestión de usuarios */}
+            <Route path='/manage-coments' element={<ManageComents/>} />
           </Route>
 
           {/* Rutas públicas */}

@@ -1,5 +1,5 @@
 // Importamos los modelos que vamos a utilizar
-const { Comentario, User, Platos } = require('../models');
+const { Comentario, User, Platos, Reservas } = require('../models');
 
 // Importamos jwt para verificar el token manualmente si es necesario
 const jwt = require('jsonwebtoken');
@@ -16,8 +16,8 @@ module.exports = {
       const comentarios = await Comentario.findAll({
         attributes: ['id_comentario', 'comentario', 'puntuacion', 'fecha_comentario'],
         include: [
-          { model: User, attributes: ['nombre'] },              // Traer el nombre del usuario que comentó
-          { model: Platos, attributes: ['nombre'] }       // Traer el nombre del plato comentado
+          { model: User, attributes: ['nombre', 'id_user'] },              // Traer el nombre del usuario que comentó
+          { model: Platos, attributes: ['nombre', 'id_plato'] }       // Traer el nombre del plato comentado
         ]
       });
       res.json(comentarios); // Enviamos los resultados como JSON
@@ -30,50 +30,57 @@ module.exports = {
   },
 
   // Crear un nuevo comentario (requiere autenticación con token)
-  createComentario: async (req, res) => {
-    const { comentario, puntuacion, id_plato } = req.body;
+ createComentario: async (req, res) => {
+  const { comentario, puntuacion, id_plato } = req.body;
+  const token = req.headers.authorization?.split(' ')[1];
 
-    // Extraemos el token JWT del header Authorization
-    const token = req.headers.authorization?.split(' ')[1];
+  try {
+    if (!token) return res.status(401).json({ message: 'Token requerido' });
 
-    try {
-      // Si no hay token, devolvemos error 401 (no autorizado)
-      if (!token) return res.status(401).json({ message: 'Token requerido' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const id_user = decoded.id_user;
 
-      // Verificamos y decodificamos el token para obtener el id del usuario
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const id_user = decoded.id_user;
-
-      // Validamos que se haya enviado comentario y puntuación
-      if (!comentario || !puntuacion) {
-        return res.status(400).json({
-          message: 'Comentario y puntuación son requeridos'
-        });
-      }
-
-      // Verificamos que el plato al que se comenta exista
-      const plato = await Platos.findByPk(id_plato);
-      if (!plato) {
-        return res.status(404).json({ message: 'Plato no encontrado' });
-      }
-
-      // Creamos el nuevo comentario
-      const nuevoComentario = await Comentario.create({
-        comentario,
-        puntuacion,
-        id_user,
-        id_plato,
-      });
-
-      res.status(201).json(nuevoComentario); // Comentario creado correctamente
-    } catch (error) {
-      res.status(400).json({
-        error: 'Error al crear el comentario',
-        detalles: error.message
+    if (!comentario || !puntuacion) {
+      return res.status(400).json({
+        message: 'Comentario y puntuación son requeridos'
       });
     }
-  },
 
+    const plato = await Platos.findByPk(id_plato);
+    if (!plato) {
+      return res.status(404).json({ message: 'Plato no encontrado' });
+    }
+
+    // Verificamos si el usuario ya ha comentado este plato
+    const existingComment = await Comentario.findOne({
+      where: {
+        id_user,
+        id_plato
+      }
+    });
+
+    if (existingComment) {
+      return res.status(400).json({
+        message: 'Ya has comentado este plato anteriormente.'
+      });
+    }
+
+    // Creamos el nuevo comentario
+    const nuevoComentario = await Comentario.create({
+      comentario,
+      puntuacion,
+      id_user,
+      id_plato,
+    });
+
+    res.status(201).json(nuevoComentario); // Comentario creado correctamente
+  } catch (error) {
+    res.status(400).json({
+      error: 'Error al crear el comentario',
+      detalles: error.message
+    });
+  }
+},
   // Moderar un comentario (solo usuarios con rol "camarero")
   moderateComentario: async (req, res) => {
     const { id } = req.params;            // ID del comentario a moderar
