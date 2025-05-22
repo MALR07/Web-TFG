@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../componetns/AuthContext.tsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode'; // Usando alias para permitir la sintaxis con llaves
 import {
   FaSignInAlt,
@@ -23,10 +23,10 @@ const getUserFromToken = (): User | null => {
     const token = localStorage.getItem('token');
     if (!token) return null;
 
-    const decoded = jwtDecode<any>(token); // Ahora funciona con el alias
+    const decoded = jwtDecode<any>(token); // Decodificamos el token
     return {
-      name: decoded.name || '',
-      email: decoded.email || '',
+      name: decoded.name || '', // Si no hay nombre, lo dejamos vacío
+      email: decoded.email || '', // Siempre usamos el email
     };
   } catch (error) {
     console.error('Error al decodificar el token:', error);
@@ -37,15 +37,16 @@ const getUserFromToken = (): User | null => {
 const Header: React.FC = () => {
   const { isAuthenticated, logout, role } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // Para obtener la URL actual
   const [showUserPanel, setShowUserPanel] = useState(false);
-  const [userInfo, setUserInfo] = useState<User>({ name: 'Usuario', email: '' });
+  const [userInfo, setUserInfo] = useState<User>({ name: '', email: '' });
 
   useEffect(() => {
     if (isAuthenticated) {
-      const userData = getUserFromToken();
+      const userData = getUserFromToken(); // Obtenemos los datos del usuario desde el token
       if (userData) setUserInfo(userData);
     } else {
-      setUserInfo({ name: 'Usuario', email: '' });
+      setUserInfo({ name: '', email: '' }); // En caso de que no esté autenticado, asignamos valores vacíos
     }
   }, [isAuthenticated]);
 
@@ -74,12 +75,23 @@ const Header: React.FC = () => {
 
   const navButtonClass = 'bg-yellow-600 px-4 py-2 rounded-md hover:bg-yellow-700 transition-all duration-300 flex items-center gap-2 text-white';
 
+  // Función para manejar el logo clickeado
+  const handleLogoClick = () => {
+    if (location.pathname === '/') {
+      // Si estamos en la landing page, desplazamos a la parte superior
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // Si no estamos en la landing, redirigimos al inicio de la landing
+      navigate('/');
+    }
+  };
+
   return (
     <header className="bg-black text-white py-4 shadow-md sticky top-0 w-full z-50 transition-all ease-in-out duration-300 text-sm sm:text-base">
       <div className="container mx-auto flex flex-wrap justify-between items-center px-4 sm:px-6 md:px-10 max-w-screen-lg">
         <div
           className="text-2xl font-bold cursor-pointer mb-2 sm:mb-0"
-          onClick={() => navigate('/')}
+          onClick={handleLogoClick} // Cambiamos el onClick para que ejecute la función que maneja el logo
         >
           <img src="/logoBP.jpg" alt="Logo del Bar" className="w-10 h-10 sm:w-12 sm:h-12 rounded-3xl" />
         </div>
@@ -132,7 +144,8 @@ const Header: React.FC = () => {
         <div className="flex gap-4 mt-3 sm:mt-0 items-center w-full sm:w-auto justify-center sm:justify-end">
           {isAuthenticated ? (
             <div className="relative">
-              <p className="text-white">Hola, {userInfo.name || userInfo.email || 'Usuario'}</p>
+              {/* Ahora mostramos el nombre o el email */}
+              <p className="text-white text-lg font-medium">Hola, {userInfo.name || userInfo.email || 'Usuario'}</p>
               <button
                 onClick={toggleUserPanel}
                 className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-all duration-300 flex items-center gap-2"
@@ -140,10 +153,13 @@ const Header: React.FC = () => {
                 {showUserPanel ? <FaChevronUp /> : <FaChevronDown />}
               </button>
 
-              {showUserPanel && (
-                <div className="absolute top-12 right-0 bg-black text-white shadow-lg rounded-md w-64 p-4 z-50">
-                  <p className="mb-2">Bienvenido, {userInfo.name || userInfo.email || 'Usuario'}!</p>
-
+              {/* Panel desplegable */}
+              <div 
+                className={`absolute top-12 right-0 bg-black text-white shadow-lg rounded-md w-64 p-4 z-50 transition-all duration-500 ease-in-out ${
+                  showUserPanel ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}>
+                <div className="space-y-3">
+                  {/* Botones organizados dentro del desplegable */}
                   {role === 'cliente' && (
                     <>
                       <button
@@ -187,7 +203,7 @@ const Header: React.FC = () => {
                       >
                         Gestión Platos
                       </button>
-                       <button
+                      <button
                         onClick={() => {
                           navigate('/manage-coments');
                           setShowUserPanel(false);
@@ -208,11 +224,12 @@ const Header: React.FC = () => {
                     </>
                   )}
 
+                  {/* Botón de logout */}
                   <button onClick={handleLoginLogout} className={navButtonClass}>
                     Salir <FaSignOutAlt />
                   </button>
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">

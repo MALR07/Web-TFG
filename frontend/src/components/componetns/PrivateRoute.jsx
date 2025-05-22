@@ -4,7 +4,12 @@ import { useAuth } from './AuthContext';  // Importamos el hook para acceder al 
 
 // Componente PrivateRoute con soporte para múltiples roles
 const PrivateRoute = ({ requiredRole = null }) => {
-  const { isAuthenticated, role } = useAuth();  // Obtenemos el estado de autenticación y rol
+  const { isAuthenticated, role, loading } = useAuth();  // Obtenemos el estado de autenticación, rol y loading
+
+  // Mientras se está verificando la autenticación, mostramos una pantalla de carga
+  if (loading) {
+    return <div></div>;  // Puedes reemplazar esto por un spinner o algo más adecuado
+  }
 
   // Si el usuario no está autenticado, redirigimos a la página de login
   if (!isAuthenticated) {

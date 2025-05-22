@@ -16,6 +16,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   role: string | null;
+  loading: boolean;  // Añadimos loading
 }
 
 interface AuthProviderProps {
@@ -28,6 +29,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<DecodedToken | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);  // Estado de carga
 
   useEffect(() => {
     try {
@@ -47,9 +49,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Error cargando datos de autenticación:', error);
-      logout(); // Datos corruptos
+      logout(); // Token o datos corruptos
+    } finally {
+      setLoading(false);  // Finalizamos el proceso de carga
     }
-  }, []);
+  }, []);  // Solo se ejecuta una vez al montar el componente.
 
   const login = (jwt: string) => {
     try {
@@ -73,9 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const role = user?.rol || null;
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, login, logout, isAuthenticated, role }}
-    >
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, role, loading }}>
       {children}
     </AuthContext.Provider>
   );
