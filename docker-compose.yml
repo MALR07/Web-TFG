@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 
 services:
    #Frontend (Vite + React)services:
@@ -55,7 +55,7 @@ services:
 networks:
   bar_network:
     driver: bridge
-=======
+
 services:
   # Base de datos (PostgreSQL)
   db:
@@ -73,4 +73,3 @@ services:
       #- bar_network
 
  
->>>>>>> c6be58c69843d0a0aa926acde6b0234b7895f666
