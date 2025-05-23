@@ -1,9 +1,16 @@
-// mpm install node-cron
 const cron = require('node-cron');
-const { checkAndExpireReservations } = require('../controllers/reservasController');
+const { checkAndExpireReservations, deleteExpiredReservations } = require('../controllers/reservasController');
 
-// Ejecutar cada 5 minutos
-cron.schedule('*/5 * * * *', async () => {
-  console.log('Ejecutando tarea para expirar reservas...');
-  await checkAndExpireReservations();
+// Expira reservas automáticamente cada 15 minutos
+cron.schedule('*/15 * * * *', async () => {
+  console.log('Ejecutando expiración automática de reservas...');
+  await reservasController.checkAndExpireReservations();
 });
+
+// Elimina reservas expiradas cada lunes a medianoche (00:00)
+cron.schedule('0 0 * * 1', async () => {
+  console.log('Eliminando reservas expiradas semanalmente...');
+  await reservasController.deleteExpiredReservations();
+});
+
+console.log('Tareas programadas activas');

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const [fullName, setFullName] = useState(""); // Campo para nombre completo
+  const [name, setname] = useState(""); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -12,54 +12,33 @@ const Register = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
-  const [emailExistsError, setEmailExistsError] = useState("");  // Error para correo ya existente
-  const [passwordStrength, setPasswordStrength] = useState(0); // Para almacenar el nivel de seguridad de la contraseña
-  const [formError, setFormError] = useState(""); // Error si algún campo está vacío
-  const navigate = useNavigate(); // Hook para redirigir
+  const [emailExistsError, setEmailExistsError] = useState(""); 
+  const [passwordStrength, setPasswordStrength] = useState(0); 
+  const [formError, setFormError] = useState(""); 
+  const [allEmails, setAllEmails] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true); // Nueva variable para saber si los correos están cargados
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para mostrar/ocultar la confirmación de contraseña
 
-  // Función para comprobar si el correo ya existe
-  const checkEmailExists = async (email: string) => {
-    try {
-      const response = await axios.get(`http://localhost:3001/auth/check-email?email=${email}`);
-      return response.data.exists; // Suponiendo que el servidor devuelve { exists: true/false }
-    } catch (error) {
-      console.error("Error al verificar el correo:", error);
-      return false;
-    }
-  };
+  const navigate = useNavigate(); 
 
-  // Función para calcular la seguridad de la contraseña
-  const checkPasswordStrength = (password: string) => {
-    let strength = 0;
-    const lengthRegex = /.{8,}/; // Al menos 8 caracteres
-    const numberRegex = /\d/; // Contiene números
-    const lowerCaseRegex = /[a-z]/; // Contiene letras minúsculas
-    const upperCaseRegex = /[A-Z]/; // Contiene letras mayúsculas
-    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/; // Contiene caracteres especiales
+  useEffect(() => {
+    const fetchEmails = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/auth/emails");
+        const emails = response.data.usuarios.map((u: any) => u.email.toLowerCase());
+        setAllEmails(emails);
+        setLoading(false); // Se actualiza el estado cuando los emails están cargados
+      } catch (error) {
+        console.error("Error al cargar los emails:", error);
+        setLoading(false); // Aseguramos que se complete el proceso de carga
+      }
+    };
+    fetchEmails();
+  }, []);
 
-    if (lengthRegex.test(password)) strength++;
-    if (numberRegex.test(password)) strength++;
-    if (lowerCaseRegex.test(password)) strength++;
-    if (upperCaseRegex.test(password)) strength++;
-    if (specialCharRegex.test(password)) strength++;
-
-    setPasswordStrength(strength);
-  };
-
-  // Función para obtener el color y el texto de la seguridad de la contraseña
-  const getStrengthColor = (strength: number) => {
-    switch (strength) {
-      case 0:
-      case 1:
-        return { color: "bg-red-500", text: "Contraseña débil" }; // Débil
-      case 2:
-        return { color: "bg-yellow-500", text: "Contraseña media" }; // Media
-      case 3:
-      case 4:
-        return { color: "bg-green-500", text: "Contraseña fuerte" }; // Fuerte
-      default:
-        return { color: "bg-gray-500", text: "" }; // Neutral si no hay fuerza
-    }
+  const checkEmailExists = (email: string) => {
+    return allEmails.includes(email.toLowerCase());
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,58 +48,57 @@ const Register = () => {
     setEmailError("");
     setPasswordError("");
     setConfirmPasswordError("");
-    setEmailExistsError("");  // Limpiar el error de email al intentar enviar
-    setFormError(""); // Limpiar error de campos vacíos
+    setEmailExistsError("");
+    setFormError("");
 
-    // Validaciones
-    if (!fullName || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       setFormError("Por favor, completa todos los campos.");
       return;
     }
 
-    // Validar formato del email
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       setEmailError("Por favor, ingresa un correo electrónico válido.");
       return;
     }
 
-    // Verificar si el correo ya está registrado
-    const emailExists = await checkEmailExists(email);
-    if (emailExists) {
+    if (loading) {
+      setError("Cargando lista de correos. Por favor espera...");
+      return;
+    }
+
+    if (checkEmailExists(email)) {
       setEmailExistsError("Este correo electrónico ya está registrado.");
       return;
     }
 
-    // Validar longitud de la contraseña
     if (password.length < 8) {
       setPasswordError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
 
-    // Verificar si las contraseñas coinciden
     if (password !== confirmPassword) {
       setConfirmPasswordError("Las contraseñas no coinciden.");
       return;
     }
 
     try {
-      const response = await axios.post("http://localhost:3001/auth/register", {
-        nombreCompleto: fullName, // Enviar el nombre completo
+      await axios.post("http://localhost:3001/auth/register", {
+        nombre: name,
         email,
         contrasena: password,
       });
 
       setSuccess("Registro exitoso. ¡Ahora puedes iniciar sesión!");
-      setFullName("");
+      setname("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
+      setAllEmails((prev) => [...prev, email.toLowerCase()]);
 
-      // Redirigir al login después de un registro exitoso
       setTimeout(() => {
         navigate("/login");
-      }, 2000); // Redirigir después de 2 segundos
+      }, 2000);
     } catch (err: any) {
       console.error(err);
       if (err.response?.data?.message) {
@@ -131,42 +109,39 @@ const Register = () => {
     }
   };
 
-  // Llamar a checkPasswordStrength cada vez que se actualiza la contraseña
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value;
     setPassword(newPassword);
-    checkPasswordStrength(newPassword);
+    // Llamar a la función para verificar la fuerza de la contraseña
   };
 
   return (
-    <section
-      id="register"
-      className="min-h-screen flex justify-center items-center bg-gray-100 py-16 px-4 relative"
-    >
-      {/* Fondo con imagen y desenfoque */}
+    <section id="register" className="min-h-screen flex justify-center items-center bg-gray-100 py-16 px-4 relative">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70 backdrop-blur-md"
-        style={{
-          backgroundImage: "url('/fondoreserva.jpeg')", // Cambia esta URL por la imagen que quieras usar
-        }}
+        style={{ backgroundImage: "url('/fondoreserva.jpeg')" }}
       ></div>
 
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg relative z-10">
+        <div className="mb-6 text-center">
+          <img src="/logoBP.jpg" alt="Logo BAR Pepin" className="mx-auto" style={{ width: "150px", height: "auto" }} />
+        </div>
+
         <h2 className="text-4xl font-semibold text-gray-800 mb-6 text-center">Registrarse</h2>
 
         <form onSubmit={handleSubmit}>
           {formError && <p className="text-red-500 text-sm mb-2">{formError}</p>}
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
           {success && <p className="text-green-600 text-sm mb-2">{success}</p>}
-          {emailExistsError && <p className="text-red-500 text-sm mb-2">{emailExistsError}</p>} {/* Mensaje de error por email ya registrado */}
+          {emailExistsError && <p className="text-red-500 text-sm mb-2">{emailExistsError}</p>}
 
           <div className="mb-4">
-            <label htmlFor="fullName" className="block text-left text-gray-700">Nombre Completo</label>
+            <label htmlFor="name" className="block text-left text-gray-700">Nombre Completo</label>
             <input
               type="text"
-              id="fullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              id="name"
+              value={name}
+              onChange={(e) => setname(e.target.value)}
               className="w-full p-3 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Escribe tu nombre completo"
               required
@@ -189,37 +164,47 @@ const Register = () => {
 
           <div className="mb-6">
             <label htmlFor="password" className="block text-left text-gray-700">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={handlePasswordChange}
-              className="w-full p-3 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Escribe tu contraseña"
-              required
-            />
-            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
-            
-            {/* Bolitas de colores según la seguridad de la contraseña */}
-            <div className="flex justify-between mt-2">
-              <div className={`w-3 h-3 rounded-full ${getStrengthColor(passwordStrength).color}`}></div>
-              <div className={`w-3 h-3 rounded-full ${getStrengthColor(passwordStrength >= 2 ? 2 : 0).color}`}></div>
-              <div className={`w-3 h-3 rounded-full ${getStrengthColor(passwordStrength >= 3 ? 3 : 0).color}`}></div>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"} // Alterna entre texto y contraseña
+                id="password"
+                value={password}
+                onChange={handlePasswordChange}
+                className="w-full p-3 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Escribe tu contraseña"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)} // Cambia el estado de visibilidad
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </button>
             </div>
-            <p className="text-sm mt-1">{getStrengthColor(passwordStrength).text}</p>
+            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
           </div>
 
           <div className="mb-6">
             <label htmlFor="confirmPassword" className="block text-left text-gray-700">Confirmar Contraseña</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-3 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Confirma tu contraseña"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"} // Alterna entre texto y contraseña
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full p-3 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Confirma tu contraseña"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)} // Cambia el estado de visibilidad
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+              >
+                {showConfirmPassword ? "Ocultar" : "Mostrar"}
+              </button>
+            </div>
             {confirmPasswordError && <p className="text-red-500 text-sm mt-1">{confirmPasswordError}</p>}
           </div>
 
@@ -230,18 +215,6 @@ const Register = () => {
             Registrarse
           </button>
         </form>
-
-        {/* Mostrar el logo debajo del formulario */}
-        {success && (
-          <div className="mt-6 text-center">
-            <img
-              src="/logo.png"  // Asegúrate de tener el logo en esta ruta
-              alt="Logo"
-              className="mx-auto"
-              style={{ width: "150px", height: "auto" }}
-            />
-          </div>
-        )}
       </div>
     </section>
   );

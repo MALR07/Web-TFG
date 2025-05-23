@@ -10,28 +10,18 @@ const MisReservas = () => {
   const [comentarios, setComentarios] = useState({});
   const [puntuaciones, setPuntuaciones] = useState({});
   const [platos, setPlatos] = useState([]);
-  const [nuevoComentario, setNuevoComentario] = useState("");
-  const [comentarioValido, setComentarioValido] = useState(false);
+  const [nuevoComentario, setNuevoComentario] = useState({});
+  const [mostrarComentario, setMostrarComentario] = useState({});
 
   const [busqueda, setBusqueda] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("");
   const [ordenFecha, setOrdenFecha] = useState("nueva");
-
-  const [mostrarComentario, setMostrarComentario] = useState(false);
 
   useEffect(() => {
     fetchReservas();
     fetchComentarios();
     fetchPlatos();
   }, []);
-
-  useEffect(() => {
-    if (nuevoComentario.length > 10) {
-      setComentarioValido(true);
-    } else {
-      setComentarioValido(false);
-    }
-  }, [nuevoComentario]);
 
   const fetchReservas = async () => {
     try {
@@ -40,7 +30,6 @@ const MisReservas = () => {
       });
       setReservas(res.data.reservas);
     } catch (err) {
-      // Elimina el mensaje de error si no se tienen reservas, ya no mostramos un error.
       console.error("Error al cargar reservas", err);
     }
   };
@@ -78,23 +67,28 @@ const MisReservas = () => {
   };
 
   const handleComentario = async (platoId) => {
-    if (!comentarioValido) {
+    const comentario = nuevoComentario[platoId] || "";
+    const puntuacion = puntuaciones[platoId] || 5;
+
+    if (comentario.length <= 10) {
       toast.error("El comentario debe tener más de 10 caracteres");
       return;
     }
+
     try {
       await axios.post(
         "http://localhost:3001/comentarios/crear",
         {
-          comentario: nuevoComentario,
-          puntuacion: puntuaciones[platoId] || 5,
+          comentario,
+          puntuacion,
           id_plato: platoId,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Comentario enviado");
       fetchComentarios();
-      setNuevoComentario(""); // Limpiar campo de comentario después de enviar
+      setNuevoComentario((prev) => ({ ...prev, [platoId]: "" }));
+      setMostrarComentario((prev) => ({ ...prev, [platoId]: false }));
     } catch (err) {
       toast.error("Error al enviar comentario");
     }
@@ -112,7 +106,7 @@ const MisReservas = () => {
           error: "Error al eliminar comentario",
         }
       )
-      .then(() => fetchComentarios()); // Volver a cargar los comentarios después de eliminar
+      .then(() => fetchComentarios());
   };
 
   const renderEstrellas = (platoId, puntuacion = 0, readOnly = false) => (
@@ -122,7 +116,7 @@ const MisReservas = () => {
           key={n}
           onClick={
             !readOnly
-              ? () => setPuntuaciones({ ...puntuaciones, [platoId]: n })
+              ? () => setPuntuaciones((prev) => ({ ...prev, [platoId]: n }))
               : undefined
           }
           style={{
@@ -146,8 +140,10 @@ const MisReservas = () => {
     .filter((r) => (estadoFiltro ? r.estado === estadoFiltro : true))
     .sort((a, b) =>
       ordenFecha === "nueva"
-        ? new Date(b.fecha_reserva).getTime() - new Date(a.fecha_reserva).getTime()
-        : new Date(a.fecha_reserva).getTime() - new Date(b.fecha_reserva).getTime()
+        ? new Date(b.fecha_reserva).getTime() -
+          new Date(a.fecha_reserva).getTime()
+        : new Date(a.fecha_reserva).getTime() -
+          new Date(b.fecha_reserva).getTime()
     );
 
   const obtenerImagenPlato = (id_plato) => {
@@ -155,24 +151,22 @@ const MisReservas = () => {
     return plato?.imagen || "";
   };
 
-  // Función para restar 2 horas de la fecha
   const restarHoras = (fecha) => {
     const nuevaFecha = new Date(fecha);
     nuevaFecha.setHours(nuevaFecha.getHours() - 2);
     return nuevaFecha.toLocaleString();
   };
 
-  // Colores por estado
   const getColorPorEstado = (estado) => {
     switch (estado) {
       case "confirmada":
-        return "bg-blue-500"; // Color para "Confirmada"
+        return "bg-blue-100";
       case "presentado":
-        return "bg-green-500"; // Color para "Presentado"
+        return "bg-green-100";
       case "expirada":
-        return "bg-red-500"; // Color para "Expirada"
+        return "bg-red-100";
       default:
-        return "bg-gray-500";
+        return "bg-gray-100";
     }
   };
 
@@ -183,7 +177,9 @@ const MisReservas = () => {
     >
       <ToastContainer />
       <div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-blue-500">Mis Reservas</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-blue-500">
+          Mis Reservas
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <input
@@ -191,12 +187,12 @@ const MisReservas = () => {
             placeholder="Buscar por plato"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="p-2 border rounded focus:ring-2 focus:ring-blue-500 transition-all"
+            className="p-2 border rounded"
           />
           <select
             value={estadoFiltro}
             onChange={(e) => setEstadoFiltro(e.target.value)}
-            className="p-2 border rounded focus:ring-2 focus:ring-blue-500 transition-all"
+            className="p-2 border rounded"
           >
             <option value="">Todos los estados</option>
             <option value="confirmada">Confirmada</option>
@@ -206,7 +202,7 @@ const MisReservas = () => {
           <select
             value={ordenFecha}
             onChange={(e) => setOrdenFecha(e.target.value)}
-            className="p-2 border rounded focus:ring-2 focus:ring-blue-500 transition-all"
+            className="p-2 border rounded"
           >
             <option value="nueva">Más reciente</option>
             <option value="vieja">Más antigua</option>
@@ -214,7 +210,9 @@ const MisReservas = () => {
         </div>
 
         {reservasFiltradas.length === 0 ? (
-          <p className="text-center text-gray-700">No tienes reservas actuales.</p>
+          <p className="text-center text-gray-700">
+            No tienes reservas actuales.
+          </p>
         ) : (
           reservasFiltradas.map((reserva) => {
             const comentario = comentarios[reserva.id_plato];
@@ -225,7 +223,7 @@ const MisReservas = () => {
             return (
               <div
                 key={reserva.id_reserva}
-                className={`border p-4 rounded-lg shadow-md mb-4 bg-white ${getColorPorEstado(
+                className={`border p-4 rounded-lg shadow-md mb-4 ${getColorPorEstado(
                   reserva.estado
                 )}`}
               >
@@ -234,11 +232,13 @@ const MisReservas = () => {
                     <img
                       src={imagen}
                       alt="Imagen del plato"
-                      className="w-full md:w-40 h-40 object-cover rounded-lg transition-all"
+                      className="w-full md:w-40 h-40 object-cover rounded-lg"
                     />
                   )}
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{reserva.Plato?.nombre}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {reserva.Plato?.nombre}
+                    </h3>
                     <p className="text-sm text-gray-600">
                       Fecha: {restarHoras(reserva.fecha_reserva)}
                     </p>
@@ -248,12 +248,22 @@ const MisReservas = () => {
                     <div className="mt-3">
                       {yaComentado ? (
                         <div>
-                          <p className="text-green-600 font-medium">Tu comentario:</p>
-                          <p className="italic text-gray-700">"{comentario.comentario}"</p>
-                          {renderEstrellas(reserva.id_plato, comentario.puntuacion, true)}
+                          <p className="text-green-600 font-medium">
+                            Tu comentario:
+                          </p>
+                          <p className="italic text-gray-700">
+                            "{comentario.comentario}"
+                          </p>
+                          {renderEstrellas(
+                            reserva.id_plato,
+                            comentario.puntuacion,
+                            true
+                          )}
                           <button
-                            onClick={() => handleEliminarComentario(comentario.id_comentario)}
-                            className="mt-2 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all"
+                            onClick={() =>
+                              handleEliminarComentario(comentario.id_comentario)
+                            }
+                            className="mt-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                           >
                             Eliminar comentario
                           </button>
@@ -261,40 +271,54 @@ const MisReservas = () => {
                       ) : puedeComentar ? (
                         <div>
                           <button
-                            onClick={() => setMostrarComentario(!mostrarComentario)}
-                            className="bg-blue-500 text-white px-4 py-1 rounded-lg hover:bg-blue-600 transition-all"
+                            onClick={() =>
+                              setMostrarComentario((prev) => ({
+                                ...prev,
+                                [reserva.id_plato]: !prev[reserva.id_plato],
+                              }))
+                            }
+                            className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
                           >
-                            {mostrarComentario ? "Cancelar" : "Comentar"}
+                            {mostrarComentario[reserva.id_plato]
+                              ? "Cancelar"
+                              : "Comentar"}
                           </button>
-                          <div
-                            className={`transition-all duration-1000 ease-in-out mt-4 ${mostrarComentario ? "max-h-screen" : "max-h-0 overflow-hidden"}`}
-                          >
-                            {mostrarComentario && (
-                              <div>
-                                <label className="block mb-1 font-medium text-gray-700">Comentario:</label>
-                                <textarea
-                                  value={nuevoComentario}
-                                  onChange={(e) => setNuevoComentario(e.target.value)}
-                                  className="p-2 border rounded w-full mb-2 transition-all"
-                                  placeholder="Escribe tu comentario..."
-                                />
-                                {nuevoComentario.length > 0 && nuevoComentario.length <= 10 && (
-                                  <p className="text-red-600">
-                                    El comentario debe tener más de 10 caracteres
-                                  </p>
-                                )}
-                                <label className="block mb-1 font-medium text-gray-700">Puntuación:</label>
-                                {renderEstrellas(reserva.id_plato)}
-                                <button
-                                  onClick={() => handleComentario(reserva.id_plato)}
-                                  className="mt-2 bg-blue-500 text-white px-4 py-1 rounded-lg hover:bg-blue-600 transition-all"
-                                  disabled={!comentarioValido}
-                                >
-                                  Comentar
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          {mostrarComentario[reserva.id_plato] && (
+                            <div className="mt-4">
+                              <label className="block font-medium text-gray-700">
+                                Comentario:
+                              </label>
+                              <textarea
+                                value={nuevoComentario[reserva.id_plato] || ""}
+                                onChange={(e) =>
+                                  setNuevoComentario((prev) => ({
+                                    ...prev,
+                                    [reserva.id_plato]: e.target.value,
+                                  }))
+                                }
+                                className="p-2 border rounded w-full mb-2"
+                                placeholder="Escribe tu comentario..."
+                              />
+                              {nuevoComentario[reserva.id_plato]?.length <=
+                                10 && (
+                                <p className="text-red-600 text-sm">
+                                  El comentario debe tener más de 10 caracteres
+                                </p>
+                              )}
+                              <label className="block font-medium text-gray-700">
+                                Puntuación:
+                              </label>
+                              {renderEstrellas(reserva.id_plato)}
+                              <button
+                                onClick={() =>
+                                  handleComentario(reserva.id_plato)
+                                }
+                                className="mt-2 bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                              >
+                                Comentar
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <p className="text-gray-500 italic">

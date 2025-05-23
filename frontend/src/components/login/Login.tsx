@@ -30,6 +30,21 @@ const AU = () => {
     setError('');
     setLoading(true);
 
+    // VALIDACIÓN: verificar que el email exista antes de intentar login
+    try {
+      const emailsResponse = await axios.get('http://localhost:3001/auth/emails');
+      const emails = emailsResponse.data.usuarios.map((u: any) => u.email.toLowerCase());
+
+      if (!emails.includes(email.toLowerCase())) {
+        setLoading(false);
+        setError('No existe un usuario con ese correo electrónico.');
+        return;
+      }
+    } catch (err) {
+      // Si falla esta validación, se permite continuar igual para no bloquear login
+      console.error('Error validando email:', err);
+    }
+
     try {
       const response = await axios.post('http://localhost:3001/auth/login', {
         email,
@@ -39,10 +54,10 @@ const AU = () => {
       const { token } = response.data;
 
       if (token) {
-        login(token); // <--- ahora solo usamos el token
+        login(token);
 
         const decoded: any = jwtDecode(token);
-        const role = decoded.rol || 'cliente'; // asegúrate de usar "rol" si así viene del backend
+        const role = decoded.rol || 'cliente';
 
         if (role === 'camarero') {
           navigate('/manage-reservations');
@@ -50,13 +65,13 @@ const AU = () => {
           navigate('/');
         }
       } else {
-        setError('Credenciales incorrectas o token no recibido.');
+        setError('Email o contraseña incorrectos.');
       }
 
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
-          setError('Credenciales incorrectas.');
+          setError('Email o contraseña incorrectos.');
         } else if (error.response) {
           setError('Error en el servidor.');
         } else if (error.request) {
@@ -80,18 +95,31 @@ const AU = () => {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70 backdrop-blur-md"
         style={{
-          backgroundImage: "url('/fondoreserva.jpeg')", // Cambia esta URL por la imagen que quieras usar
+          backgroundImage: "url('/fondoreserva.jpeg')",
         }}
       ></div>
 
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg relative z-10">
-        <h2 className="text-4xl font-semibold text-gray-800 mb-6 text-center">Iniciar Sesión</h2>
+        {/* Logo arriba */}
+        <div className="flex justify-center mb-6">
+          <img
+            src="/logoBP.jpg"
+            alt="Logo Bar Pepin"
+            className="w-20 h-20 object-contain"
+          />
+        </div>
+
+        <h2 className="text-4xl font-semibold text-gray-800 mb-6 text-center">
+          Iniciar Sesión
+        </h2>
 
         <form onSubmit={handleSubmit}>
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
           <div className="mb-4">
-            <label htmlFor="email" className="block text-left text-gray-700">Correo Electrónico</label>
+            <label htmlFor="email" className="block text-left text-gray-700">
+              Correo Electrónico
+            </label>
             <input
               type="email"
               id="email"
@@ -104,7 +132,9 @@ const AU = () => {
           </div>
 
           <div className="mb-6">
-            <label htmlFor="password" className="block text-left text-gray-700">Contraseña</label>
+            <label htmlFor="password" className="block text-left text-gray-700">
+              Contraseña
+            </label>
             <input
               type="password"
               id="password"
@@ -127,10 +157,16 @@ const AU = () => {
 
         <div className="mt-4">
           <p className="text-sm text-gray-500">
-            ¿No tienes cuenta? <a href="/register" className="text-blue-500 hover:underline">Regístrate aquí</a>
+            ¿No tienes cuenta?{' '}
+            <a href="/register" className="text-blue-500 hover:underline">
+              Regístrate aquí
+            </a>
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            ¿Olvidaste tu contraseña? <a href="/forgot-password" className="text-blue-500 hover:underline">Recupérala aquí</a>
+            ¿Olvidaste tu contraseña?{' '}
+            <a href="/forgot-password" className="text-blue-500 hover:underline">
+              Recupérala aquí
+            </a>
           </p>
         </div>
       </div>

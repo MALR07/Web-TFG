@@ -33,7 +33,7 @@ import ManageComents from './components/componetns/CamareroComentario.jsx';  // 
 
 // Componente de cliente
 import ReservationPage from './components/componetns/ClientReserva';  // Reserva
-import PlatosViewCliente from './components/componetns/h.jsx';  // Historial reservas
+import PlatosViewCliente from './components/componetns/HistorialReserva.jsx';  // Historial reservas
 
 // Página de acceso denegado
 import AccessDenied from './components/routes/accesdenied';

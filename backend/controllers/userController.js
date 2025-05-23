@@ -144,6 +144,7 @@ module.exports = {
     }
   }],
   
+
   // Eliminar un usuario
   deleteUsuario: [verifyToken, checkRole('camarero'), async (req, res) => {
     const { id_user } = req.params;

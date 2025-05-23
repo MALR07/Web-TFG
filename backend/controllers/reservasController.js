@@ -256,6 +256,52 @@ manageReserva: [verifyToken, checkRole('camarero'), async (req, res) => {
     } catch (error) {
       return res.status(401).json({ message: 'Token no válido', error: error.message });
     }
+
   }],
+
+ checkAndExpireReservations: async () => {
+  try {
+    const ahora = new Date(); // Hora actual local (puede ser UTC o no)
+    const fechaLimite = new Date(ahora.getTime() - 20 * 60 * 1000); // Ahora - 20 min
+
+    // Buscar todas las reservas confirmadas
+    const reservasConfirmadas = await Reservas.findAll({
+      where: {
+        estado: 'confirmada'
+      }
+    });
+
+    for (const reserva of reservasConfirmadas) {
+      const fechaReserva = new Date(reserva.fecha_reserva);
+      
+      // Restar 2 horas a la fecha_reserva para llevarla a UTC
+      const fechaReservaUTC = new Date(fechaReserva.getTime() - 2 * 60 * 60 * 1000);
+
+      // Si la fecha_reserva corregida es menor o igual a la fecha límite (ahora-20min)
+      if (fechaReservaUTC <= fechaLimite) {
+        reserva.estado = 'expirada';
+        await reserva.save();
+        console.log(`Reserva ${reserva.id_reserva} marcada como expirada.`);
+      }
+    }
+  } catch (error) {
+    console.error('Error expirando reservas:', error);
+  }
+},
+
+  //Función para borrar reservas expiradas cada lunes a la medianoche
+  deleteExpiredReservations: async () => {
+    try {
+      await Reservas.destroy({
+        where: { estado: 'expirada' }
+      });
+      console.log('Reservas expiradas eliminadas.');
+    } catch (error) {
+      console.error('Error eliminando reservas expiradas:', error);
+    }
+  },
+
 };
+
+
 
