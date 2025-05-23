@@ -37,3 +37,7 @@ Como característica diferenciadora, se implementará un sistema de reservas par
 - _**Optimización de imágenes**: Se utilizaran herramientas como ImageKit o Cloudinary (todavia por determinar) para optimizar las imágenes de la carta, el logo y las fotos del bar, que carguen rápidamente en dispositivos móviles._
 
 - _**Pruebas de Usabilidad**: Se realizarán pruebas en distintos dispositivos y navegadores para asegurar una experiencia fluida en todos los entornos._
+<<<<<<< HEAD
+=======
+
+>>>>>>> c6be58c69843d0a0aa926acde6b0234b7895f666
