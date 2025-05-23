@@ -10,8 +10,8 @@ const routes = require('./routes'); // Importar rutas modularizadas
 const models = require('./models'); // Importar modelos desde el archivo index.js
 const path = require('path');
 
-//const cron = require('node-cron');
-//require('./cron/cronReservas'); // Importar el archivo de cron para reservas
+const cron = require('node-cron');
+require('./cron/cronReservas'); // Importar el archivo de cron para reservas
 
 // Cargar variables de entorno
 dotenv.config();
